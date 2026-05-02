@@ -617,11 +617,9 @@
 
   // ── API ──
 function api(params) {
-    return fetch(URL_API, {
-      method: 'POST',
-      body: JSON.stringify(params),
-      headers: { 'Content-Type': 'text/plain' }
-    }).then(function(r) { return r.json(); });
+    var url = URL_API + '?' + new URLSearchParams(params).toString();
+    return fetch(url)
+      .then(function(r) { return r.json(); });
   }
 
   // ── UTILIDADES ──
