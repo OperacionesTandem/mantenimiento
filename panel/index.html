@@ -471,21 +471,32 @@ function cargarTickets() {
     });
 }
 
-  function actualizarStats() {
-    var ab = todosTickets.filter(function(t) { return t.estado !== 'Cerrado' && t.estado !== 'Resuelto'; });
-    ['P1','P2','P3','P4'].forEach(function(p) {
-      document.getElementById('st-'+p).textContent = ab.filter(function(t){ return t.prioridad===p; }).length;
-    });
-  }
+ function actualizarStats() {
+  var abiertos = todosTickets.filter(function(t) {
+    return t.estado !== 'Cerrado' && t.estado !== 'Resuelto';
+  });
+  ['P1','P2','P3','P4'].forEach(function(p) {
+    var el = document.getElementById('st-' + p);
+    if (el) el.textContent = abiertos.filter(function(t){ return t.prioridad === p; }).length;
+  });
+}
 
-  function actualizarContadores() {
-    document.getElementById('cnt-todos').textContent = todosTickets.length;
-    var map = {'Nuevo':'Nuevo','En revisión':'revision','Asignado':'Asignado','En proceso':'proceso','Resuelto':'Resuelto','Cerrado':'Cerrado'};
-    Object.keys(map).forEach(function(e) {
-      var el = document.getElementById('cnt-'+map[e]);
-      if (el) el.textContent = todosTickets.filter(function(t){ return t.estado===e; }).length;
-    });
-  }
+ function actualizarContadores() {
+  var el = document.getElementById('cnt-todos');
+  if (el) el.textContent = todosTickets.length;
+  var map = {
+    'Nuevo':'Nuevo',
+    'En revisión':'revision',
+    'Asignado':'Asignado',
+    'En proceso':'proceso',
+    'Resuelto':'Resuelto',
+    'Cerrado':'Cerrado'
+  };
+  Object.keys(map).forEach(function(e) {
+    var cnt = document.getElementById('cnt-' + map[e]);
+    if (cnt) cnt.textContent = todosTickets.filter(function(t){ return t.estado === e; }).length;
+  });
+}
 
   function filtrar(tipo, val, btn) {
     if (tipo==='estado') { fEstado=val; document.querySelectorAll('.f-btn').forEach(function(b){ if(b.onclick && b.onclick.toString().includes("'estado'")) b.classList.remove('activo'); }); btn.classList.add('activo'); }
