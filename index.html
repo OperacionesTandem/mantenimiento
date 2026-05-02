@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alta de Ticket — Mantenimiento</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --negro: #1a1a1a;
+    --crema: #f7f4ef;
+    --dorado: #c4a35a;
+    --texto: #2d2d2d;
+    --gris: #888;
+    --borde: #ddd8ce;
+    --p1: #C0392B; --p2: #E67E22; --p3: #D4AC0D; --p4: #27AE60;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--crema);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: var(--negro);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-marca {
+    font-family: 'Cormorant Garamond', serif;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 400;
+    letter-spacing: .5px;
+  }
+  .header-sub { font-size: 9px; color: var(--gris); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+  .header-tag { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--dorado); border: 1px solid var(--dorado); padding: 3px 8px; border-radius: 2px; }
+
+  .contenedor { max-width: 700px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  .titulo-bloque { margin-bottom: 24px; border-bottom: 1px solid var(--borde); padding-bottom: 16px; }
+  .titulo-bloque h1 { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 400; color: var(--negro); margin-bottom: 4px; }
+  .titulo-bloque p { font-size: 12px; color: var(--gris); line-height: 1.6; }
+
+  .seccion { margin-bottom: 24px; }
+  .seccion-label {
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gris); font-weight: 500; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .seccion-label::after { content: ''; flex: 1; height: 1px; background: var(--borde); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-1 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (max-width: 520px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .campo { display: flex; flex-direction: column; gap: 5px; }
+  .campo label { font-size: 11px; font-weight: 500; color: var(--texto); }
+  .campo label .req { color: var(--p1); margin-left: 2px; }
+  .campo input, .campo select, .campo textarea {
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    border: 1px solid var(--borde); background: #fff;
+    padding: 10px 12px; border-radius: 4px; color: var(--texto);
+    transition: border-color .2s; outline: none; width: 100%;
+  }
+  .campo input:focus, .campo select:focus, .campo textarea:focus { border-color: var(--negro); }
+  .campo textarea { resize: vertical; min-height: 80px; }
+
+  /* PRIORIDADES */
+  .prioridades-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media (max-width: 520px) { .prioridades-grid { grid-template-columns: 1fr; } }
+
+  .prioridad-card {
+    border: 1.5px solid var(--borde); border-radius: 6px;
+    padding: 10px 12px; cursor: pointer; transition: all .15s;
+    background: #fff; position: relative; user-select: none;
+  }
+  .prioridad-card input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .prioridad-card:hover { border-color: var(--negro); }
+  .prioridad-card.sel { background: var(--negro); border-color: var(--negro); }
+
+  .p-codigo { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+  .p-nombre { font-size: 11px; font-weight: 500; margin-bottom: 2px; }
+  .p-desc   { font-size: 10px; opacity: .7; line-height: 1.3; }
+
+  .prioridad-card[data-p="P1"] { --pc: #C0392B; }
+  .prioridad-card[data-p="P2"] { --pc: #E67E22; }
+  .prioridad-card[data-p="P3"] { --pc: #D4AC0D; }
+  .prioridad-card[data-p="P4"] { --pc: #27AE60; }
+
+  .prioridad-card:not(.sel) .p-codigo { color: var(--pc); }
+  .prioridad-card:not(.sel) .p-nombre { color: var(--texto); }
+  .prioridad-card:not(.sel) .p-desc   { color: var(--gris); }
+  .prioridad-card.sel .p-codigo,
+  .prioridad-card.sel .p-nombre,
+  .prioridad-card.sel .p-desc { color: #fff; }
+  .prioridad-card.sel .p-codigo { color: var(--pc); filter: brightness(1.5); }
+
+  /* PILLS */
+  .radio-grupo { display: flex; flex-wrap: wrap; gap: 6px; }
+  .radio-pill {
+    display: flex; align-items: center; gap: 5px;
+    border: 1px solid var(--borde); padding: 6px 12px;
+    border-radius: 20px; cursor: pointer; font-size: 12px;
+    background: #fff; transition: all .15s; user-select: none;
+  }
+  .radio-pill input { display: none; }
+  .radio-pill:hover { border-color: var(--negro); }
+  .radio-pill.activo { background: var(--negro); color: #fff; border-color: var(--negro); }
+
+  /* FOTO */
+  .zona-foto {
+    border: 1.5px dashed var(--borde); border-radius: 6px;
+    padding: 24px; text-align: center; cursor: pointer;
+    transition: all .2s; background: #fff; position: relative;
+  }
+  .zona-foto:hover { border-color: var(--negro); }
+  .zona-foto input[type=file] {
+    position: absolute; inset: 0; opacity: 0;
+    cursor: pointer; width: 100%; height: 100%;
+  }
+  .foto-icono { font-size: 24px; margin-bottom: 6px; }
+  .foto-texto { font-size: 11px; color: var(--gris); }
+  .foto-preview { width: 100%; max-height: 160px; object-fit: cover; border-radius: 4px; margin-top: 8px; display: none; }
+
+  /* AVISO P1 */
+  .aviso-p1 {
+    display: none; background: #fdf1f0; border: 1px solid #f5b8b3;
+    border-radius: 4px; padding: 9px 12px; font-size: 11px;
+    color: var(--p1); margin-top: 8px; line-height: 1.5;
+  }
+
+  /* BOTÓN */
+  .btn-enviar {
+    width: 100%; padding: 14px; background: var(--negro); color: #fff;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+    letter-spacing: 1.5px; text-transform: uppercase; border: none;
+    border-radius: 4px; cursor: pointer; transition: background .2s; margin-top: 8px;
+  }
+  .btn-enviar:hover { background: #333; }
+  .btn-enviar:disabled { background: var(--gris); cursor: not-allowed; }
+
+  /* OVERLAY */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26,26,26,.85); z-index: 100;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 14px;
+  }
+  .overlay.visible { display: flex; }
+  .spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,.2); border-top-color: var(--dorado); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .overlay-texto { color: #fff; font-size: 12px; letter-spacing: 1px; }
+
+  /* RESULTADO */
+  .resultado { display: none; border-radius: 8px; padding: 28px; text-align: center; margin-top: 20px; }
+  .resultado.exito { background: #f0faf4; border: 1px solid #a8e6be; }
+  .resultado.error { background: #fdf1f0; border: 1px solid #f5b8b3; }
+  .resultado-icono { font-size: 32px; margin-bottom: 10px; }
+  .resultado-titulo { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; margin-bottom: 6px; }
+  .resultado-num { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--gris); margin-bottom: 6px; }
+  .resultado-desc { font-size: 12px; color: var(--gris); line-height: 1.6; }
+  .btn-nuevo { margin-top: 14px; padding: 9px 20px; background: var(--negro); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+
+  .nota-req { font-size: 11px; color: var(--gris); margin-bottom: 16px; }
+  .nota-req span { color: var(--p1); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-marca">Grupo Tandem Gastronómico</div>
+    <div class="header-sub">Sistema de mantenimiento</div>
+  </div>
+  <div class="header-tag">Alta de ticket</div>
+</div>
+
+<div class="contenedor">
+
+  <div class="titulo-bloque">
+    <h1>Nueva incidencia</h1>
+    <p>Completa el formulario. Recibirás un PDF de resguardo en tu email al enviar.</p>
+  </div>
+
+  <p class="nota-req">Campos con <span>*</span> obligatorios.</p>
+
+  <form id="formTicket" onsubmit="enviarTicket(event)">
+
+    <!-- SOLICITANTE -->
+    <div class="seccion">
+      <div class="seccion-label">Datos del solicitante</div>
+      <div class="grid-2">
+        <div class="campo">
+          <label>Nombre completo <span class="req">*</span></label>
+          <input type="text" id="nombre" required placeholder="Tu nombre">
+        </div>
+        <div class="campo">
+          <label>Email de contacto <span class="req">*</span></label>
+          <input type="email" id="email" required placeholder="tu@email.com">
+        </div>
+      </div>
+    </div>
+
+    <!-- UBICACIÓN -->
+    <div class="seccion">
+      <div class="seccion-label">Ubicación</div>
+      <div class="grid-2">
+        <div class="campo">
+          <label>Local <span class="req">*</span></label>
+          <select id="local" required>
+            <option value="">— Selecciona —</option>
+            <option>Maipi Bar</option>
+            <option>La Oficina de Carito y Germán</option>
+            <option>Doña Petrona</option>
+            <option>Fierro</option>
+            <option>Estudio Tandem</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Zona / Área <span class="req">*</span></label>
+          <select id="zona" required>
+            <option value="">— Selecciona —</option>
+            <option>Barra</option>
+            <option>Sala / Comedor</option>
+            <option>Cocina</option>
+            <option>Baños</option>
+            <option>Terraza</option>
+            <option>Almacén / Bodega</option>
+            <option>Zona de frío / Cámaras</option>
+            <option>Oficina</option>
+            <option>Fachada / Exterior</option>
+            <option>Instalaciones generales (electricidad, fontanería, climatización)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESCRIPCIÓN -->
+    <div class="seccion">
+      <div class="seccion-label">Descripción de la incidencia</div>
+      <div class="grid-1">
+        <div class="campo">
+          <label>Descripción detallada <span class="req">*</span></label>
+          <textarea id="descripcion" required placeholder="Describe con detalle qué está ocurriendo..."></textarea>
+        </div>
+        <div class="grid-2">
+          <div class="campo">
+            <label>Estado del equipo <span class="req">*</span></label>
+            <select id="estadoEquipo" required>
+              <option value="">— Selecciona —</option>
+              <option>Operativo con limitaciones</option>
+              <option>Fuera de servicio</option>
+              <option>Operativo pero deteriorado</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Impacto en la operativa <span class="req">*</span></label>
+            <select id="impacto" required>
+              <option value="">— Selecciona —</option>
+              <option>Podemos funcionar con normalidad</option>
+              <option>Podemos funcionar con limitaciones</option>
+              <option>No podemos dar servicio</option>
+            </select>
+          </div>
+        </div>
+        <div class="campo">
+          <label>Frecuencia del problema</label>
+          <div class="radio-grupo" id="radioFrecuencia">
+            <label class="radio-pill" onclick="selPill(this,'frecuencia')">
+              <input type="radio" name="frecuencia" value="Constante"> Constante
+            </label>
+            <label class="radio-pill" onclick="selPill(this,'frecuencia')">
+              <input type="radio" name="frecuencia" value="Intermitente"> Intermitente
+            </label>
+            <label class="radio-pill" onclick="selPill(this,'frecuencia')">
+              <input type="radio" name="frecuencia" value="Puntual"> Puntual
+            </label>
+          </div>
+        </div>
+        <div class="campo">
+          <label>Acciones provisionales</label>
+          <textarea id="accionesProv" placeholder="¿Has tomado alguna medida provisional?" style="min-height:60px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIORIDAD -->
+    <div class="seccion">
+      <div class="seccion-label">Nivel de prioridad <span style="color:#C0392B;font-size:9px;"> *</span></div>
+      <div class="prioridades-grid">
+        <label class="prioridad-card" data-p="P1" onclick="selPrioridad(this)">
+          <input type="radio" name="prioridad" value="P1">
+          <div class="p-codigo">P1</div>
+          <div class="p-nombre">Crítico — Servicio parado</div>
+          <div class="p-desc">No podemos operar. Acción inmediata.</div>
+        </label>
+        <label class="prioridad-card" data-p="P2" onclick="selPrioridad(this)">
+          <input type="radio" name="prioridad" value="P2">
+          <div class="p-codigo">P2</div>
+          <div class="p-nombre">Urgente — Técnico externo</div>
+          <div class="p-desc">Requiere servicio técnico especializado.</div>
+        </label>
+        <label class="prioridad-card" data-p="P3" onclick="selPrioridad(this)">
+          <input type="radio" name="prioridad" value="P3">
+          <div class="p-codigo">P3</div>
+          <div class="p-nombre">Estético — Sin impacto</div>
+          <div class="p-desc">No afecta al servicio.</div>
+        </label>
+        <label class="prioridad-card" data-p="P4" onclick="selPrioridad(this)">
+          <input type="radio" name="prioridad" value="P4">
+          <div class="p-codigo">P4</div>
+          <div class="p-nombre">Pendiente — En lista</div>
+          <div class="p-desc">Sin urgencia. A planificar.</div>
+        </label>
+      </div>
+      <div class="aviso-p1" id="avisoP1">
+        ⚠️ Prioridad crítica. El equipo de mantenimiento recibirá notificación inmediata.
+      </div>
+    </div>
+
+    <!-- FOTO -->
+    <div class="seccion">
+      <div class="seccion-label">Evidencia fotográfica</div>
+      <div class="zona-foto" id="zonaFoto">
+        <input type="file" id="fotoInput" accept="image/*" onchange="previewFoto(event)">
+        <div class="foto-icono">📷</div>
+        <div class="foto-texto">Toca para añadir una foto<br><span style="font-size:10px;color:#bbb;">JPG, PNG — Máx. 3MB</span></div>
+        <img class="foto-preview" id="fotoPreview" src="" alt="Preview">
+      </div>
+    </div>
+
+    <button type="submit" class="btn-enviar" id="btnEnviar">
+      Enviar ticket de mantenimiento
+    </button>
+
+  </form>
+
+  <div class="resultado exito" id="resultadoOK">
+    <div class="resultado-icono">✅</div>
+    <div class="resultado-titulo">Ticket registrado correctamente</div>
+    <div class="resultado-num" id="resNumTicket"></div>
+    <div class="resultado-desc">Recibirás en breve un email con el PDF de resguardo.</div>
+    <button class="btn-nuevo" onclick="resetForm()">Enviar otro ticket</button>
+  </div>
+
+  <div class="resultado error" id="resultadoERR">
+    <div class="resultado-icono">❌</div>
+    <div class="resultado-titulo">Error al enviar</div>
+    <div class="resultado-desc" id="resError">Ha ocurrido un error. Inténtalo de nuevo.</div>
+    <button class="btn-nuevo" onclick="document.getElementById('resultadoERR').style.display='none'">Reintentar</button>
+  </div>
+
+</div>
+
+<div class="overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="overlay-texto">Registrando incidencia...</div>
+</div>
+
+<script>
+  // ⚠️ CAMBIA ESTA URL POR LA DE TU WEB APP DE APPS SCRIPT
+  var URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxL7he3zWPJtFPxij-F-bHXIcbgNlMvxJO7HhppoPCHbU_mh5huzzTBjzAuAZMf9-Q2/exec";
+
+  var fotoBase64   = "";
+  var fotoNombre   = "";
+  var frecuenciaVal = "";
+
+  function selPrioridad(card) {
+    document.querySelectorAll('.prioridad-card').forEach(c => c.classList.remove('sel'));
+    card.classList.add('sel');
+    card.querySelector('input').checked = true;
+    document.getElementById('avisoP1').style.display = card.dataset.p === 'P1' ? 'block' : 'none';
+  }
+
+  function selPill(pill, grupo) {
+    document.querySelectorAll('#radio' + cap(grupo) + ' .radio-pill').forEach(p => p.classList.remove('activo'));
+    pill.classList.add('activo');
+    frecuenciaVal = pill.querySelector('input').value;
+  }
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function previewFoto(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) { alert('La imagen supera los 3MB.'); return; }
+    fotoNombre = file.name;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      fotoBase64 = ev.target.result;
+      var p = document.getElementById('fotoPreview');
+      p.src = fotoBase64; p.style.display = 'block';
+      document.querySelector('.foto-icono').style.display = 'none';
+      document.querySelector('.foto-texto').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function enviarTicket(e) {
+    e.preventDefault();
+    var prioEl = document.querySelector('.prioridad-card.sel input');
+    if (!prioEl) { alert('Por favor selecciona el nivel de prioridad.'); return; }
+
+    var params = new URLSearchParams({
+      accion:       'crearTicket',
+      nombre:       document.getElementById('nombre').value.trim(),
+      email:        document.getElementById('email').value.trim(),
+      local:        document.getElementById('local').value,
+      zona:         document.getElementById('zona').value,
+      descripcion:  document.getElementById('descripcion').value.trim(),
+      estadoEquipo: document.getElementById('estadoEquipo').value,
+      impacto:      document.getElementById('impacto').value,
+      frecuencia:   frecuenciaVal,
+      accionesProv: document.getElementById('accionesProv').value.trim(),
+      prioridad:    prioEl.value,
+    });
+
+    // La foto se envía solo si es pequeña (GET tiene límite de URL)
+    // Para fotos usamos una llamada separada o las omitimos en la URL
+    if (fotoBase64 && fotoBase64.length < 50000) {
+      params.append('fotoBase64', fotoBase64);
+      params.append('fotoNombre', fotoNombre);
+    }
+
+    document.getElementById('loadingOverlay').classList.add('visible');
+    document.getElementById('btnEnviar').disabled = true;
+    document.getElementById('formTicket').style.display = 'none';
+
+    fetch(URL_APPS_SCRIPT + '?' + params.toString())
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        document.getElementById('loadingOverlay').classList.remove('visible');
+        if (res.ok) {
+          document.getElementById('resNumTicket').textContent = 'Ticket Nº ' + res.data.numTicket;
+          document.getElementById('resultadoOK').style.display = 'block';
+        } else {
+          document.getElementById('resError').textContent = res.error || 'Error desconocido.';
+          document.getElementById('resultadoERR').style.display = 'block';
+          document.getElementById('formTicket').style.display = 'block';
+        }
+        document.getElementById('btnEnviar').disabled = false;
+      })
+      .catch(function(err) {
+        document.getElementById('loadingOverlay').classList.remove('visible');
+        document.getElementById('btnEnviar').disabled = false;
+        document.getElementById('formTicket').style.display = 'block';
+        document.getElementById('resError').textContent = 'Error de conexión: ' + err;
+        document.getElementById('resultadoERR').style.display = 'block';
+      });
+  }
+
+  function resetForm() {
+    document.getElementById('formTicket').reset();
+    document.getElementById('formTicket').style.display = 'block';
+    document.getElementById('resultadoOK').style.display = 'none';
+    document.getElementById('resultadoERR').style.display = 'none';
+    document.querySelectorAll('.prioridad-card').forEach(c => c.classList.remove('sel'));
+    document.querySelectorAll('.radio-pill').forEach(p => p.classList.remove('activo'));
+    document.getElementById('fotoPreview').style.display = 'none';
+    document.querySelector('.foto-icono').style.display = 'block';
+    document.querySelector('.foto-texto').style.display = 'block';
+    document.getElementById('btnEnviar').disabled = false;
+    document.getElementById('avisoP1').style.display = 'none';
+    fotoBase64 = ''; fotoNombre = ''; frecuenciaVal = '';
+    window.scrollTo(0,0);
+  }
+</script>
+</body>
+</html>
