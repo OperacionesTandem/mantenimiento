@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://script.google.com https://fonts.googleapis.com https://fonts.gstatic.com;">
+
 <title>Panel Operaciones — Grupo Tandem Gastronómico</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
@@ -618,10 +618,13 @@
 
   // ── API ──
 function api(params) {
-    var url = URL_API + '?' + new URLSearchParams(params).toString();
-    return fetch(url)
-      .then(function(r) { return r.json(); });
-  }
+  var url = URL_API + '?' + new URLSearchParams(params).toString();
+  return fetch(url, {
+    redirect: 'follow',
+    mode: 'cors',
+    credentials: 'omit'
+  }).then(function(r) { return r.json(); });
+}
 
   // ── UTILIDADES ──
   function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
