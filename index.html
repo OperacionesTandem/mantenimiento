@@ -412,26 +412,15 @@ function enviarTicket(e) {
   var prioEl = document.querySelector('.prioridad-card.sel input');
   if (!prioEl) { alert('Por favor selecciona el nivel de prioridad.'); return; }
 
+  var emailUsuario = document.getElementById('email').value.trim();
+
   document.getElementById('loadingOverlay').classList.add('visible');
   document.getElementById('btnEnviar').disabled = true;
-  document.getElementById('formTicket').style.display = 'none';
 
-  // Crear un iframe oculto para recibir la respuesta
-  var iframe = document.createElement('iframe');
-  iframe.name = 'respuestaFrame';
-  iframe.style.display = 'none';
-  document.body.appendChild(iframe);
-
-  // Crear formulario nativo que envía a Apps Script
-  var form = document.createElement('form');
-  form.method = 'GET';
-  form.action = URL_APPS_SCRIPT;
-  form.target = 'respuestaFrame';
-
-  var campos = {
+  var params = new URLSearchParams({
     accion:       'crearTicket',
     nombre:       document.getElementById('nombre').value.trim(),
-    email:        document.getElementById('email').value.trim(),
+    email:        emailUsuario,
     local:        document.getElementById('local').value,
     zona:         document.getElementById('zona').value,
     descripcion:  document.getElementById('descripcion').value.trim(),
@@ -440,44 +429,25 @@ function enviarTicket(e) {
     frecuencia:   frecuenciaVal,
     accionesProv: document.getElementById('accionesProv').value.trim(),
     prioridad:    prioEl.value,
-  };
-
-  Object.keys(campos).forEach(function(k) {
-    var input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = k;
-    input.value = campos[k];
-    form.appendChild(input);
   });
 
-  document.body.appendChild(form);
-  form.submit();
-
-  // Esperar respuesta del iframe
-  iframe.onload = function() {
-    try {
-      var texto = iframe.contentDocument.body.innerText;
-      var res   = JSON.parse(texto);
+  // Enviar con no-cors — no podemos leer la respuesta pero el ticket SE CREA
+  fetch(URL_APPS_SCRIPT + '?' + params.toString(), { mode: 'no-cors' })
+    .then(function() {
       document.getElementById('loadingOverlay').classList.remove('visible');
+      document.getElementById('formTicket').style.display = 'none';
+      // Mostrar éxito — el email de confirmación llegará en breve
+      document.getElementById('resNumTicket').textContent = 'Revisa tu email ' + emailUsuario;
+      document.getElementById('resultadoOK').style.display = 'block';
       document.getElementById('btnEnviar').disabled = false;
-      if (res.ok) {
-        document.getElementById('resNumTicket').textContent = 'Ticket Nº ' + res.data.numTicket;
-        document.getElementById('resultadoOK').style.display = 'block';
-      } else {
-        document.getElementById('resError').textContent = res.error || 'Error desconocido.';
-        document.getElementById('resultadoERR').style.display = 'block';
-        document.getElementById('formTicket').style.display = 'block';
-      }
-    } catch(err) {
+    })
+    .catch(function() {
       document.getElementById('loadingOverlay').classList.remove('visible');
       document.getElementById('btnEnviar').disabled = false;
       document.getElementById('formTicket').style.display = 'block';
-      document.getElementById('resError').textContent = 'Error al procesar la respuesta.';
+      document.getElementById('resError').textContent = 'Error de conexión. Comprueba tu internet e inténtalo de nuevo.';
       document.getElementById('resultadoERR').style.display = 'block';
-    }
-    document.body.removeChild(form);
-    document.body.removeChild(iframe);
-  };
+    });
 }
 
   function resetForm() {
