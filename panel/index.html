@@ -616,9 +616,10 @@
   }
 
   // ── API ──
-  function api(params) {
+function api(params) {
     var url = URL_API + '?' + new URLSearchParams(params).toString();
-    return fetch(url, { mode:'cors' }).then(function(r){ return r.json(); });
+    return fetch(url)
+      .then(function(r) { return r.json(); });
   }
 
   // ── UTILIDADES ──
