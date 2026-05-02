@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel Operaciones — Grupo Tandem Gastronómico</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
+  :root { --negro:#1a1a1a; --crema:#f7f4ef; --dorado:#c4a35a; --texto:#2d2d2d; --gris:#888; --borde:#ddd8ce; --p1:#C0392B; --p2:#E67E22; --p3:#D4AC0D; --p4:#27AE60; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+
+  /* ── LOGIN ── */
+  #vistaLogin {
+    min-height:100vh; background:var(--crema);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;
+  }
+  .logo-area { text-align:center; margin-bottom:28px; }
+  .logo-marca { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:400; color:var(--negro); }
+  .logo-sub { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--gris); margin-top:4px; }
+  .card { background:#fff; border-radius:8px; padding:36px 32px; width:100%; max-width:380px; box-shadow:0 4px 20px rgba(0,0,0,.07); border:1px solid var(--borde); }
+  .card-titulo { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:400; color:var(--negro); margin-bottom:6px; }
+  .card-desc { font-size:12px; color:var(--gris); line-height:1.6; margin-bottom:24px; }
+  .campo { margin-bottom:14px; }
+  .campo label { display:block; font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.5px; color:var(--texto); margin-bottom:5px; }
+  .campo input { width:100%; font-family:'DM Sans',sans-serif; font-size:14px; border:1px solid var(--borde); border-radius:4px; padding:10px 12px; outline:none; color:var(--texto); transition:border-color .2s; }
+  .campo input:focus { border-color:var(--negro); }
+  .campo-codigo input { font-size:22px; font-weight:600; letter-spacing:6px; text-align:center; font-family:monospace; }
+  .btn { width:100%; padding:12px; background:var(--negro); color:#fff; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; border:none; border-radius:4px; cursor:pointer; margin-top:6px; transition:background .2s; }
+  .btn:hover { background:#333; }
+  .btn:disabled { background:var(--gris); cursor:not-allowed; }
+  .btn-sec { width:100%; padding:9px; background:none; color:var(--gris); font-family:'DM Sans',sans-serif; font-size:11px; border:1px solid var(--borde); border-radius:4px; cursor:pointer; margin-top:8px; transition:all .15s; }
+  .btn-sec:hover { border-color:var(--negro); color:var(--negro); }
+  .msg { padding:9px 12px; border-radius:4px; font-size:12px; line-height:1.5; margin-bottom:14px; display:none; }
+  .msg.error  { background:#fdf1f0; border:1px solid #f5b8b3; color:var(--p1); display:block; }
+  .msg.exito  { background:#f0faf4; border:1px solid #a8e6be; color:var(--p4); display:block; }
+  .paso { display:none; }
+  .paso.activo { display:block; }
+  .email-tag { display:inline-block; background:var(--crema); padding:2px 10px; border-radius:20px; font-size:12px; color:var(--negro); font-weight:500; margin:3px 0 6px; }
+  .timer { font-size:11px; color:var(--gris); text-align:center; margin-top:10px; }
+  .timer span { font-weight:600; color:var(--negro); }
+  .spinner-btn { display:inline-block; width:12px; height:12px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:5px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .footer-login { font-size:10px; color:#ccc; text-align:center; margin-top:20px; line-height:1.6; }
+
+  /* ── PANEL ── */
+  #vistaPanel { display:none; font-family:'DM Sans',sans-serif; background:#f0ede7; min-height:100vh; }
+
+  .topbar { background:var(--negro); padding:0 20px; height:52px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+  .topbar-marca { font-family:'Cormorant Garamond',serif; color:#fff; font-size:16px; }
+  .topbar-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .topbar-badge { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--dorado); border:1px solid var(--dorado); padding:3px 8px; border-radius:2px; }
+  .topbar-btn { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:#aaa; background:none; border:1px solid #333; padding:5px 10px; border-radius:3px; cursor:pointer; transition:all .15s; }
+  .topbar-btn:hover { color:#fff; border-color:#666; }
+  .topbar-btn.activo { color:#fff; border-color:var(--dorado); background:rgba(196,163,90,.1); }
+
+  .layout { display:flex; height:calc(100vh - 52px); overflow:hidden; }
+  .sidebar { width:220px; background:var(--negro); display:flex; flex-direction:column; padding:16px 0; flex-shrink:0; overflow-y:auto; }
+  .sidebar-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#555; padding:0 14px; margin:14px 0 6px; }
+  .sidebar-label:first-child { margin-top:0; }
+  .f-btn { display:flex; align-items:center; justify-content:space-between; padding:7px 14px; font-size:11px; color:#999; cursor:pointer; border:none; background:none; width:100%; text-align:left; transition:all .15s; border-left:2px solid transparent; }
+  .f-btn:hover { color:#fff; background:rgba(255,255,255,.04); }
+  .f-btn.activo { color:#fff; border-left-color:var(--dorado); background:rgba(255,255,255,.07); }
+  .f-badge { font-size:10px; background:rgba(255,255,255,.1); padding:1px 6px; border-radius:10px; color:#aaa; }
+  .f-btn.activo .f-badge { background:var(--dorado); color:var(--negro); }
+  .p-dot { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:5px; }
+
+  .main { flex:1; overflow-y:auto; padding:20px; }
+
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px; }
+  .stat-card { background:#fff; border-radius:6px; padding:14px 16px; border-top:3px solid var(--borde); }
+  .stat-card.p1 { border-top-color:var(--p1); } .stat-card.p2 { border-top-color:var(--p2); }
+  .stat-card.p3 { border-top-color:var(--p3); } .stat-card.p4 { border-top-color:var(--p4); }
+  .stat-num { font-size:26px; font-weight:300; color:var(--negro); }
+  .stat-label { font-size:10px; color:var(--gris); text-transform:uppercase; letter-spacing:.5px; margin-top:3px; }
+
+  .toolbar { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .toolbar-titulo { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:400; flex:1; }
+  .busqueda { border:1px solid var(--borde); border-radius:4px; padding:7px 10px; font-size:12px; font-family:'DM Sans',sans-serif; outline:none; background:#fff; width:180px; }
+  .busqueda:focus { border-color:var(--negro); }
+  .btn-ref { padding:7px 12px; font-size:11px; letter-spacing:1px; text-transform:uppercase; background:var(--negro); color:#fff; border:none; border-radius:4px; cursor:pointer; }
+
+  .tickets-lista { display:flex; flex-direction:column; gap:8px; }
+  .ticket-card { background:#fff; border-radius:6px; border:1px solid var(--borde); overflow:hidden; transition:box-shadow .2s; }
+  .ticket-card:hover { box-shadow:0 3px 12px rgba(0,0,0,.07); }
+  .ticket-header { display:flex; align-items:center; gap:10px; padding:12px 16px; cursor:pointer; user-select:none; flex-wrap:wrap; }
+  .t-prio { font-size:11px; font-weight:600; padding:3px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; }
+  .t-num { font-size:11px; color:var(--gris); white-space:nowrap; flex-shrink:0; }
+  .t-titulo { font-size:13px; font-weight:500; flex:1; min-width:0; }
+  .t-local { font-size:11px; color:var(--gris); white-space:nowrap; }
+  .t-estado { font-size:10px; padding:3px 8px; border-radius:10px; white-space:nowrap; flex-shrink:0; font-weight:500; }
+  .t-fecha { font-size:10px; color:#bbb; white-space:nowrap; flex-shrink:0; }
+
+  .ticket-body { display:none; padding:0 16px 16px; border-top:1px solid var(--borde); }
+  .ticket-body.abierto { display:block; animation:sd .2s ease; }
+  @keyframes sd { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+
+  .det-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:14px 0; }
+  .det-item label { font-size:9px; text-transform:uppercase; letter-spacing:.8px; color:#bbb; display:block; margin-bottom:2px; }
+  .det-item span { font-size:12px; color:var(--texto); }
+  .desc-box { background:var(--crema); border-radius:4px; padding:10px 12px; font-size:12px; line-height:1.6; color:var(--texto); margin-bottom:12px; border-left:3px solid var(--borde); }
+  .desc-box.hi { border-left-color:var(--p2); }
+
+  .gestion { background:var(--crema); border-radius:6px; padding:14px; display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; }
+  .g-campo label { font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--gris); display:block; margin-bottom:4px; }
+  .g-campo select, .g-campo input, .g-campo textarea { font-family:'DM Sans',sans-serif; font-size:12px; border:1px solid var(--borde); background:#fff; padding:7px 10px; border-radius:4px; width:100%; outline:none; }
+  .g-campo select:focus, .g-campo input:focus { border-color:var(--negro); }
+  .g-campo.full { grid-column:1/-1; }
+  .g-campo textarea { min-height:55px; resize:vertical; }
+  .btn-guardar { padding:8px 16px; background:var(--negro); color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:11px; letter-spacing:1px; text-transform:uppercase; height:34px; white-space:nowrap; }
+  .btn-guardar:hover { background:#333; }
+  .btn-guardar:disabled { background:var(--gris); }
+
+  .estado-Nuevo { background:#e8f4fd; color:#1a6fa8; }
+  .estado-En-revision { background:#fff4e5; color:#9a5600; }
+  .estado-Asignado { background:#f0f0f0; color:#444; }
+  .estado-En-proceso { background:#e8f5e9; color:#2e7d32; }
+  .estado-Resuelto { background:#e8f5e9; color:#1b5e20; }
+  .estado-Cerrado { background:#f5f5f5; color:#777; }
+
+  /* EMAILS Y ACCESOS */
+  .panel-sec { background:#fff; border-radius:8px; padding:24px; }
+  .panel-sec h2 { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:400; margin-bottom:6px; }
+  .panel-sec p { font-size:12px; color:var(--gris); margin-bottom:18px; line-height:1.6; }
+  .tabla { width:100%; border-collapse:collapse; }
+  .tabla th { font-size:10px; text-transform:uppercase; letter-spacing:.8px; color:var(--gris); text-align:left; padding:9px 12px; border-bottom:1px solid var(--borde); }
+  .tabla td { font-size:12px; padding:9px 12px; border-bottom:1px solid #f5f3ef; vertical-align:middle; }
+  .tabla tr:last-child td { border-bottom:none; }
+  .badge-activo { background:#e8f5e9; color:#2e7d32; padding:2px 8px; border-radius:10px; font-size:10px; }
+  .btn-elim { background:none; border:1px solid #f5b8b3; color:var(--p1); padding:4px 9px; border-radius:3px; cursor:pointer; font-size:11px; }
+  .form-nuevo { display:grid; grid-template-columns:2fr 2fr 1fr auto; gap:10px; align-items:end; margin-top:18px; padding-top:18px; border-top:1px solid var(--borde); }
+  .form-nuevo label { font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--gris); display:block; margin-bottom:4px; }
+  .form-nuevo input, .form-nuevo select { font-family:'DM Sans',sans-serif; font-size:12px; border:1px solid var(--borde); padding:8px 10px; border-radius:4px; width:100%; outline:none; }
+  .btn-add { padding:8px 14px; background:var(--negro); color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:11px; text-transform:uppercase; letter-spacing:1px; height:36px; }
+
+  .vacio { text-align:center; padding:40px; color:var(--gris); font-size:13px; }
+  .cargando { text-align:center; padding:40px; color:var(--gris); font-size:12px; }
+  .sp { display:inline-block; width:18px; height:18px; border:2px solid #ddd; border-top-color:var(--negro); border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:6px; }
+
+  .toast { position:fixed; bottom:20px; right:20px; background:var(--negro); color:#fff; padding:11px 18px; border-radius:6px; font-size:12px; z-index:200; transform:translateY(60px); opacity:0; transition:all .3s; }
+  .toast.vis { transform:translateY(0); opacity:1; }
+  .toast.ex { border-left:3px solid var(--p4); }
+  .toast.er { border-left:3px solid var(--p1); }
+
+  @media (max-width:800px) {
+    .stats-row { grid-template-columns:repeat(2,1fr); }
+    .sidebar { display:none; }
+    .det-grid { grid-template-columns:1fr 1fr; }
+    .gestion { grid-template-columns:1fr 1fr; }
+    .form-nuevo { grid-template-columns:1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ VISTA LOGIN ══ -->
+<div id="vistaLogin">
+  <div class="logo-area">
+    <div class="logo-marca">Grupo Tandem Gastronómico</div>
+    <div class="logo-sub">Panel de Operaciones · Acceso restringido</div>
+  </div>
+
+  <div class="card">
+    <!-- PASO 1 -->
+    <div class="paso activo" id="paso1">
+      <div class="card-titulo">🔐 Acceso al panel</div>
+      <div class="card-desc">Introduce tu email. Si está autorizado recibirás un código de acceso de 6 dígitos.</div>
+      <div id="msg1" class="msg"></div>
+      <div class="campo">
+        <label>Email</label>
+        <input type="email" id="inputEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')solicitarCodigo()">
+      </div>
+      <button class="btn" id="btnSolicitar" onclick="solicitarCodigo()">Enviar código de acceso</button>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso" id="paso2">
+      <div class="card-titulo">✉️ Código enviado</div>
+      <div class="card-desc">
+        Hemos enviado un código a:<br>
+        <span class="email-tag" id="emailMostrado"></span><br>
+        Revisa tu bandeja y el spam.
+      </div>
+      <div id="msg2" class="msg"></div>
+      <div class="campo campo-codigo">
+        <label>Código de acceso</label>
+        <input type="text" id="inputCodigo" placeholder="000000" maxlength="6" inputmode="numeric"
+               onkeydown="if(event.key==='Enter')verificarCodigo()" oninput="this.value=this.value.replace(/\D/g,'')">
+      </div>
+      <button class="btn" id="btnVerificar" onclick="verificarCodigo()">Acceder al panel</button>
+      <button class="btn-sec" onclick="volverPaso1()">← Usar otro email</button>
+      <div class="timer">Código válido durante <span id="cuentaAtras">15:00</span></div>
+    </div>
+  </div>
+
+  <div class="footer-login">
+    Solo el personal autorizado puede acceder.<br>
+    Grupo Tandem Gastronómico · Sistema de Mantenimiento
+  </div>
+</div>
+
+<!-- ══ VISTA PANEL ══ -->
+<div id="vistaPanel">
+
+  <div class="topbar">
+    <div class="topbar-marca">Grupo Tandem Gastronómico · Mantenimiento</div>
+    <div class="topbar-right">
+      <span class="topbar-badge" id="badgeUsuario">Operaciones</span>
+      <button class="topbar-btn activo" id="btnT" onclick="cambiarVista('tickets')">Tickets</button>
+      <button class="topbar-btn" id="btnE" onclick="cambiarVista('emails')">Emails</button>
+      <button class="topbar-btn" id="btnA" onclick="cambiarVista('accesos')">🔒 Accesos</button>
+      <button class="topbar-btn" onclick="cerrarSesion()" style="border-color:#444;color:#666;">Salir</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-label">Estado</div>
+      <button class="f-btn activo" onclick="filtrar('estado','todos',this)">Todos <span class="f-badge" id="cnt-todos">—</span></button>
+      <button class="f-btn" onclick="filtrar('estado','Nuevo',this)">Nuevo <span class="f-badge" id="cnt-Nuevo">—</span></button>
+      <button class="f-btn" onclick="filtrar('estado','En revisión',this)">En revisión <span class="f-badge" id="cnt-revision">—</span></button>
+      <button class="f-btn" onclick="filtrar('estado','Asignado',this)">Asignado <span class="f-badge" id="cnt-Asignado">—</span></button>
+      <button class="f-btn" onclick="filtrar('estado','En proceso',this)">En proceso <span class="f-badge" id="cnt-proceso">—</span></button>
+      <button class="f-btn" onclick="filtrar('estado','Resuelto',this)">Resuelto <span class="f-badge" id="cnt-Resuelto">—</span></button>
+      <button class="f-btn" onclick="filtrar('estado','Cerrado',this)">Cerrado <span class="f-badge" id="cnt-Cerrado">—</span></button>
+
+      <div class="sidebar-label">Prioridad</div>
+      <button class="f-btn" onclick="filtrar('prioridad','todas',this)">Todas</button>
+      <button class="f-btn" onclick="filtrar('prioridad','P1',this)"><span class="p-dot" style="background:var(--p1)"></span>P1 Crítico</button>
+      <button class="f-btn" onclick="filtrar('prioridad','P2',this)"><span class="p-dot" style="background:var(--p2)"></span>P2 Urgente</button>
+      <button class="f-btn" onclick="filtrar('prioridad','P3',this)"><span class="p-dot" style="background:var(--p3)"></span>P3 Estético</button>
+      <button class="f-btn" onclick="filtrar('prioridad','P4',this)"><span class="p-dot" style="background:var(--p4)"></span>P4 Pendiente</button>
+
+      <div class="sidebar-label">Local</div>
+      <button class="f-btn" onclick="filtrar('local','todos',this)">Todos</button>
+      <button class="f-btn" onclick="filtrar('local','Maipi Bar',this)">Maipi Bar</button>
+      <button class="f-btn" onclick="filtrar('local','La Oficina de Carito y Germán',this)">La Oficina</button>
+      <button class="f-btn" onclick="filtrar('local','Doña Petrona',this)">Doña Petrona</button>
+      <button class="f-btn" onclick="filtrar('local','Fierro',this)">Fierro</button>
+      <button class="f-btn" onclick="filtrar('local','Estudio Tandem',this)">Estudio Tandem</button>
+    </div>
+
+    <div class="main">
+
+      <!-- TICKETS -->
+      <div id="secTickets">
+        <div class="stats-row">
+          <div class="stat-card p1"><div class="stat-num" id="st-p1">—</div><div class="stat-label">P1 Crítico</div></div>
+          <div class="stat-card p2"><div class="stat-num" id="st-p2">—</div><div class="stat-label">P2 Urgente</div></div>
+          <div class="stat-card p3"><div class="stat-num" id="st-p3">—</div><div class="stat-label">P3 Estético</div></div>
+          <div class="stat-card p4"><div class="stat-num" id="st-p4">—</div><div class="stat-label">P4 Pendiente</div></div>
+        </div>
+        <div class="toolbar">
+          <div class="toolbar-titulo" id="tTitulo">Todos los tickets</div>
+          <input class="busqueda" type="search" id="busqueda" placeholder="Buscar..." oninput="renderTickets()">
+          <button class="btn-ref" onclick="cargarTickets()">↻ Actualizar</button>
+        </div>
+        <div id="listaTickets" class="tickets-lista"><div class="cargando"><span class="sp"></span>Cargando tickets...</div></div>
+      </div>
+
+      <!-- EMAILS -->
+      <div id="secEmails" style="display:none;">
+        <div class="panel-sec">
+          <h2>Emails autorizados adicionales</h2>
+          <p>Emails que reciben copia de los tickets además de los configurados por defecto para cada local.</p>
+          <table class="tabla">
+            <thead><tr><th>Email</th><th>Alcance</th><th>Estado</th><th>Notas</th><th></th></tr></thead>
+            <tbody id="tablaEmails"><tr><td colspan="5" class="cargando"><span class="sp"></span>Cargando...</td></tr></tbody>
+          </table>
+          <div class="form-nuevo">
+            <div><label>Email</label><input type="email" id="nEmail" placeholder="nuevo@email.com"></div>
+            <div><label>Alcance</label>
+              <select id="nLocal">
+                <option value="Todos los locales">Todos los locales</option>
+                <option>Maipi Bar</option><option>La Oficina de Carito y Germán</option>
+                <option>Doña Petrona</option><option>Fierro</option><option>Estudio Tandem</option>
+              </select>
+            </div>
+            <div><label>Notas</label><input type="text" id="nNotas" placeholder="Ej: Jefe de sala"></div>
+            <div><label>&nbsp;</label><button class="btn-add" onclick="agregarEmail()">+ Agregar</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCESOS -->
+      <div id="secAccesos" style="display:none;">
+        <div class="panel-sec">
+          <h2>🔒 Accesos al panel</h2>
+          <p>Gestiona qué emails pueden acceder al panel. Solo funciona con cuentas que tengan email registrado aquí.</p>
+          <table class="tabla">
+            <thead><tr><th>Email</th><th>Rol</th><th>Estado</th><th>Notas</th><th></th></tr></thead>
+            <tbody id="tablaAccesos"><tr><td colspan="5" class="cargando"><span class="sp"></span>Cargando...</td></tr></tbody>
+          </table>
+          <div class="form-nuevo">
+            <div><label>Email</label><input type="email" id="nAccesoEmail" placeholder="nuevo@email.com"></div>
+            <div><label>Rol</label>
+              <select id="nAccesoRol">
+                <option value="Gestor">Gestor</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
+            <div><label>Notas</label><input type="text" id="nAccesoNotas" placeholder="Ej: Responsable"></div>
+            <div><label>&nbsp;</label><button class="btn-add" onclick="agregarAcceso()">+ Autorizar</button></div>
+          </div>
+          <p style="margin-top:12px;font-size:11px;color:#bbb;">⚠️ Admin puede gestionar accesos. Gestor solo gestiona tickets. Debe existir siempre al menos un Admin.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  var URL_API = "https://script.google.com/macros/s/AKfycbw8NKiWyeA-2RfRGWZBk1FJ8xvDPhPn61R17hqDRk9MqUv0m82Z1opKX95w4jEklXldIA/exec";
+
+  var emailActual = "";
+  var tokenActual = "";
+  var rolActual   = "";
+  var timer       = null;
+  var segs        = 900;
+  var todosTickets = [];
+  var fEstado = "todos", fPrio = "todas", fLocal = "todos";
+  var PC = { P1:{bg:'#fdf1f0',c:'#C0392B'}, P2:{bg:'#fef5ec',c:'#E67E22'}, P3:{bg:'#fefbe8',c:'#D4AC0D'}, P4:{bg:'#f0faf4',c:'#27AE60'} };
+  var ESTADOS = ["Nuevo","En revisión","Asignado","En proceso","Resuelto","Cerrado"];
+
+  // ── SESIÓN ──
+  window.addEventListener('load', function() {
+    var token = localStorage.getItem('panelToken');
+    var email = localStorage.getItem('panelEmail');
+    var rol   = localStorage.getItem('panelRol');
+    if (token && email) {
+      // Verificar token con la API
+      api({ accion: 'verificarToken', token: token }).then(function(res) {
+        if (res.ok) {
+          abrirPanel(token, res.email || email, res.rol || rol);
+        } else {
+          limpiarSesion();
+        }
+      }).catch(function() { limpiarSesion(); });
+    }
+  });
+
+  function limpiarSesion() {
+    localStorage.removeItem('panelToken');
+    localStorage.removeItem('panelEmail');
+    localStorage.removeItem('panelRol');
+  }
+
+  // ── LOGIN ──
+  function solicitarCodigo() {
+    var email = document.getElementById('inputEmail').value.trim();
+    if (!email) { setMsg('msg1','Por favor introduce tu email.','error'); return; }
+    var btn = document.getElementById('btnSolicitar');
+    btn.innerHTML = '<span class="spinner-btn"></span>Enviando...';
+    btn.disabled = true; clearMsg('msg1');
+
+    api({ accion: 'solicitarCodigo', email: email }).then(function(res) {
+      btn.innerHTML = 'Enviar código de acceso'; btn.disabled = false;
+      if (res.ok) {
+        emailActual = email;
+        document.getElementById('emailMostrado').textContent = email;
+        document.getElementById('paso1').classList.remove('activo');
+        document.getElementById('paso2').classList.add('activo');
+        document.getElementById('inputCodigo').focus();
+        iniciarTimer();
+      } else {
+        setMsg('msg1', res.error || 'Error al enviar el código.', 'error');
+      }
+    }).catch(function() {
+      btn.innerHTML = 'Enviar código de acceso'; btn.disabled = false;
+      setMsg('msg1','Error de conexión. Inténtalo de nuevo.','error');
+    });
+  }
+
+  function verificarCodigo() {
+    var codigo = document.getElementById('inputCodigo').value.trim();
+    if (codigo.length !== 6) { setMsg('msg2','El código debe tener 6 dígitos.','error'); return; }
+    var btn = document.getElementById('btnVerificar');
+    btn.innerHTML = '<span class="spinner-btn"></span>Verificando...';
+    btn.disabled = true; clearMsg('msg2');
+
+    api({ accion: 'verificarCodigo', email: emailActual, codigo: codigo }).then(function(res) {
+      btn.innerHTML = 'Acceder al panel'; btn.disabled = false;
+      if (res.ok) {
+        clearInterval(timer);
+        localStorage.setItem('panelToken', res.token);
+        localStorage.setItem('panelEmail', res.email);
+        localStorage.setItem('panelRol',   res.rol);
+        abrirPanel(res.token, res.email, res.rol);
+      } else {
+        setMsg('msg2', res.error || 'Código no válido.', 'error');
+      }
+    }).catch(function() {
+      btn.innerHTML = 'Acceder al panel'; btn.disabled = false;
+      setMsg('msg2','Error de conexión.','error');
+    });
+  }
+
+  function abrirPanel(token, email, rol) {
+    tokenActual = token; emailActual = email; rolActual = rol;
+    document.getElementById('vistaLogin').style.display = 'none';
+    document.getElementById('vistaPanel').style.display = 'block';
+    document.getElementById('badgeUsuario').textContent = email.split('@')[0];
+    cargarTickets();
+  }
+
+  function cerrarSesion() {
+    api({ accion: 'cerrarSesion', token: tokenActual }).catch(function(){});
+    limpiarSesion();
+    location.reload();
+  }
+
+  function volverPaso1() {
+    clearInterval(timer);
+    document.getElementById('paso2').classList.remove('activo');
+    document.getElementById('paso1').classList.add('activo');
+    document.getElementById('inputCodigo').value = '';
+    clearMsg('msg2'); segs = 900;
+  }
+
+  function iniciarTimer() {
+    segs = 900; clearInterval(timer);
+    timer = setInterval(function() {
+      segs--;
+      var m = Math.floor(segs/60), s = segs%60;
+      document.getElementById('cuentaAtras').textContent = pad(m)+':'+pad(s);
+      if (segs <= 0) {
+        clearInterval(timer);
+        setMsg('msg2','El código ha expirado. Solicita uno nuevo.','error');
+        document.getElementById('btnVerificar').disabled = true;
+      }
+    }, 1000);
+  }
+
+  function pad(n) { return String(n).padStart(2,'0'); }
+
+  // ── TICKETS ──
+  function cargarTickets() {
+    document.getElementById('listaTickets').innerHTML = '<div class="cargando"><span class="sp"></span>Cargando tickets...</div>';
+    api({ accion:'obtenerTickets', filtroLocal:'todos', filtroEstado:'todos', filtroPrioridad:'todas', token: tokenActual })
+      .then(function(res) {
+        if (res.ok) {
+          todosTickets = res.data.tickets;
+          actualizarStats(); actualizarContadores(); renderTickets();
+        } else { mostrarError('Error: ' + res.error); }
+      }).catch(function(e) { mostrarError('Error de conexión.'); });
+  }
+
+  function actualizarStats() {
+    var ab = todosTickets.filter(function(t) { return t.estado !== 'Cerrado' && t.estado !== 'Resuelto'; });
+    ['P1','P2','P3','P4'].forEach(function(p) {
+      document.getElementById('st-'+p).textContent = ab.filter(function(t){ return t.prioridad===p; }).length;
+    });
+  }
+
+  function actualizarContadores() {
+    document.getElementById('cnt-todos').textContent = todosTickets.length;
+    var map = {'Nuevo':'Nuevo','En revisión':'revision','Asignado':'Asignado','En proceso':'proceso','Resuelto':'Resuelto','Cerrado':'Cerrado'};
+    Object.keys(map).forEach(function(e) {
+      var el = document.getElementById('cnt-'+map[e]);
+      if (el) el.textContent = todosTickets.filter(function(t){ return t.estado===e; }).length;
+    });
+  }
+
+  function filtrar(tipo, val, btn) {
+    if (tipo==='estado') { fEstado=val; document.querySelectorAll('.f-btn').forEach(function(b){ if(b.onclick && b.onclick.toString().includes("'estado'")) b.classList.remove('activo'); }); btn.classList.add('activo'); }
+    if (tipo==='prioridad') fPrio=val;
+    if (tipo==='local') fLocal=val;
+    renderTickets();
+  }
+
+  function renderTickets() {
+    var busq = (document.getElementById('busqueda').value||'').toLowerCase();
+    var f = todosTickets.filter(function(t) {
+      if (fEstado!=='todos' && t.estado!==fEstado) return false;
+      if (fPrio!=='todas' && t.prioridad!==fPrio) return false;
+      if (fLocal!=='todos' && t.local!==fLocal) return false;
+      if (busq && !((t.ticket||'').toLowerCase().includes(busq)||(t.nombre||'').toLowerCase().includes(busq)||(t.local||'').toLowerCase().includes(busq)||(t.zona||'').toLowerCase().includes(busq)||(t.descripcion||'').toLowerCase().includes(busq))) return false;
+      return true;
+    });
+    document.getElementById('tTitulo').textContent = f.length + ' ticket' + (f.length!==1?'s':'');
+    if (!f.length) { document.getElementById('listaTickets').innerHTML='<div class="vacio">No hay tickets con los filtros seleccionados.</div>'; return; }
+    document.getElementById('listaTickets').innerHTML = f.map(renderCard).join('');
+  }
+
+  function renderCard(t) {
+    var pc = PC[t.prioridad] || PC['P4'];
+    var eKey = (t.estado||'Nuevo').replace(/\s/g,'-');
+    var opts = ESTADOS.map(function(e){ return '<option'+(e===t.estado?' selected':'')+'>'+e+'</option>'; }).join('');
+    return '<div class="ticket-card" id="tc-'+t.fila+'">'
+      +'<div class="ticket-header" onclick="toggleT('+t.fila+')">'
+      +'<span class="t-prio" style="background:'+pc.bg+';color:'+pc.c+';">'+(t.prioridad||'P4')+'</span>'
+      +'<span class="t-num">'+(t.ticket||'')+'</span>'
+      +'<span class="t-titulo">'+esc(t.zona)+' — '+esc((t.descripcion||'').substring(0,55))+(t.descripcion&&t.descripcion.length>55?'...':'')+'</span>'
+      +'<span class="t-local">'+esc(t.local)+'</span>'
+      +'<span class="t-estado estado-'+eKey+'">'+(t.estado||'Nuevo')+'</span>'
+      +'<span class="t-fecha">'+(t.timestamp||'')+'</span>'
+      +'</div>'
+      +'<div class="ticket-body" id="tb-'+t.fila+'">'
+      +'<div class="det-grid">'
+      +'<div class="det-item"><label>Solicitante</label><span>'+esc(t.nombre)+'</span></div>'
+      +'<div class="det-item"><label>Email</label><span>'+esc(t.email)+'</span></div>'
+      +'<div class="det-item"><label>Estado equipo</label><span>'+esc(t.estadoEquipo)+'</span></div>'
+      +'<div class="det-item"><label>Impacto</label><span>'+esc(t.impacto)+'</span></div>'
+      +'<div class="det-item"><label>Frecuencia</label><span>'+esc(t.frecuencia)+'</span></div>'
+      +'<div class="det-item"><label>Técnico</label><span>'+(t.tecnico||'Sin asignar')+'</span></div>'
+      +'</div>'
+      +'<div class="desc-box">'+esc(t.descripcion)+'</div>'
+      +(t.accionesProv&&t.accionesProv!=='Ninguna'?'<div class="desc-box hi"><strong style="font-size:10px;color:var(--gris);">Acciones provisionales:</strong><br>'+esc(t.accionesProv)+'</div>':'')
+      +(t.pdfUrl?'<div style="margin-bottom:12px;"><a href="'+t.pdfUrl+'" target="_blank" style="font-size:11px;color:var(--negro);border:1px solid var(--borde);padding:4px 10px;border-radius:3px;text-decoration:none;">📄 Ver PDF</a></div>':'')
+      +'<div class="gestion">'
+      +'<div class="g-campo"><label>Estado</label><select id="sel-'+t.fila+'">'+opts+'</select></div>'
+      +'<div class="g-campo"><label>Técnico asignado</label><input type="text" id="tec-'+t.fila+'" value="'+esc(t.tecnico||'')+'" placeholder="Nombre del técnico"></div>'
+      +'<div class="g-campo" style="align-self:end;"><button class="btn-guardar" onclick="guardar('+t.fila+')">Guardar</button></div>'
+      +'<div class="g-campo full"><label>Notas de resolución</label><textarea id="not-'+t.fila+'" placeholder="Describe la solución adoptada...">'+esc(t.notasOps||'')+'</textarea></div>'
+      +'</div>'
+      +(t.fechaResol?'<div style="font-size:10px;color:var(--gris);margin-top:6px;text-align:right;">Resuelto el '+t.fechaResol+'</div>':'')
+      +'</div></div>';
+  }
+
+  function toggleT(fila) { document.getElementById('tb-'+fila).classList.toggle('abierto'); }
+
+  function guardar(fila) {
+    var estado  = document.getElementById('sel-'+fila).value;
+    var tecnico = document.getElementById('tec-'+fila).value.trim();
+    var notas   = document.getElementById('not-'+fila).value.trim();
+    var btn     = document.querySelector('#tc-'+fila+' .btn-guardar');
+    btn.textContent='Guardando...'; btn.disabled=true;
+
+    api({ accion:'actualizarTicket', fila:fila, estado:estado, tecnico:tecnico, notasOps:notas, token:tokenActual })
+      .then(function(res) {
+        btn.textContent='Guardar'; btn.disabled=false;
+        if (res.ok) {
+          toast('✅ Ticket actualizado','ex');
+          var eKey = estado.replace(/\s/g,'-');
+          var badge = document.querySelector('#tc-'+fila+' .t-estado');
+          if (badge) { badge.textContent=estado; badge.className='t-estado estado-'+eKey; }
+          var t = todosTickets.find(function(x){ return x.fila===fila; });
+          if (t) { t.estado=estado; t.tecnico=tecnico; t.notasOps=notas; }
+          actualizarStats(); actualizarContadores();
+        } else { toast('❌ Error: '+res.error,'er'); }
+      }).catch(function(){ btn.textContent='Guardar'; btn.disabled=false; toast('❌ Error de conexión','er'); });
+  }
+
+  // ── VISTAS ──
+  function cambiarVista(v) {
+    document.getElementById('secTickets').style.display = v==='tickets'?'block':'none';
+    document.getElementById('secEmails').style.display  = v==='emails'?'block':'none';
+    document.getElementById('secAccesos').style.display = v==='accesos'?'block':'none';
+    document.getElementById('sidebar').style.display    = v==='tickets'?'flex':'none';
+    ['T','E','A'].forEach(function(x,i){ document.getElementById('btn'+x).classList.toggle('activo',['tickets','emails','accesos'][i]===v); });
+    if (v==='emails')  cargarEmails();
+    if (v==='accesos') cargarAccesos();
+  }
+
+  // ── EMAILS ──
+  function cargarEmails() {
+    document.getElementById('tablaEmails').innerHTML='<tr><td colspan="5" class="cargando"><span class="sp"></span>Cargando...</td></tr>';
+    api({ accion:'obtenerEmailsExtra', token:tokenActual }).then(function(res) {
+      var emails = res.ok ? (res.data.emails||[]) : [];
+      if (!emails.length) { document.getElementById('tablaEmails').innerHTML='<tr><td colspan="5" class="vacio">No hay emails adicionales.</td></tr>'; return; }
+      document.getElementById('tablaEmails').innerHTML = emails.map(function(em) {
+        return '<tr><td>'+esc(em.email)+'</td><td>'+esc(em.local)+'</td><td><span class="badge-activo">Activo</span></td><td>'+esc(em.notas)+'</td>'
+          +'<td><button class="btn-elim" onclick="eliminarEmail('+em.fila+')">Eliminar</button></td></tr>';
+      }).join('');
+    });
+  }
+
+  function agregarEmail() {
+    var email=document.getElementById('nEmail').value.trim(), local=document.getElementById('nLocal').value, notas=document.getElementById('nNotas').value.trim();
+    if (!email) { toast('Introduce un email válido','er'); return; }
+    api({ accion:'guardarEmailExtra', email:email, local:local, notas:notas, token:tokenActual }).then(function(res) {
+      if (res.ok) { toast('✅ Email autorizado','ex'); document.getElementById('nEmail').value=''; document.getElementById('nNotas').value=''; cargarEmails(); }
+      else toast('❌ '+res.error,'er');
+    });
+  }
+
+  function eliminarEmail(fila) {
+    if (!confirm('¿Eliminar este email?')) return;
+    api({ accion:'eliminarEmailExtra', fila:fila, token:tokenActual }).then(function(res) {
+      if (res.ok) { toast('Email eliminado','ex'); cargarEmails(); } else toast('❌ Error','er');
+    });
+  }
+
+  // ── ACCESOS ──
+  function cargarAccesos() {
+    document.getElementById('tablaAccesos').innerHTML='<tr><td colspan="5" class="cargando"><span class="sp"></span>Cargando...</td></tr>';
+    api({ accion:'obtenerAccesosPanel', token:tokenActual }).then(function(res) {
+      var accesos = res.ok ? (res.data.accesos||[]) : [];
+      if (!accesos.length) { document.getElementById('tablaAccesos').innerHTML='<tr><td colspan="5" class="vacio">No hay accesos configurados.</td></tr>'; return; }
+      document.getElementById('tablaAccesos').innerHTML = accesos.map(function(a) {
+        var esYo = a.email.toLowerCase()===emailActual.toLowerCase();
+        return '<tr><td>'+esc(a.email)+(esYo?' <span style="font-size:10px;color:var(--gris);">(tú)</span>':'')+'</td>'
+          +'<td><strong style="font-size:11px;">'+esc(a.rol)+'</strong></td>'
+          +'<td><span class="badge-activo">Activo</span></td><td>'+esc(a.notas)+'</td>'
+          +'<td>'+(!esYo?'<button class="btn-elim" onclick="eliminarAcceso('+a.fila+')">Eliminar</button>':'—')+'</td></tr>';
+      }).join('');
+    });
+  }
+
+  function agregarAcceso() {
+    var email=document.getElementById('nAccesoEmail').value.trim(), rol=document.getElementById('nAccesoRol').value, notas=document.getElementById('nAccesoNotas').value.trim();
+    if (!email) { toast('Introduce un email válido','er'); return; }
+    api({ accion:'guardarAccesoPanel', email:email, rol:rol, notas:notas, token:tokenActual }).then(function(res) {
+      if (res.ok) { toast('✅ Acceso autorizado','ex'); document.getElementById('nAccesoEmail').value=''; document.getElementById('nAccesoNotas').value=''; cargarAccesos(); }
+      else toast('❌ '+res.error,'er');
+    });
+  }
+
+  function eliminarAcceso(fila) {
+    if (!confirm('¿Eliminar este acceso?')) return;
+    api({ accion:'eliminarAccesoPanel', fila:fila, token:tokenActual }).then(function(res) {
+      if (res.ok) { toast('Acceso eliminado','ex'); cargarAccesos(); } else toast('❌ '+res.error,'er');
+    });
+  }
+
+  // ── API ──
+  function api(params) {
+    var url = URL_API + '?' + new URLSearchParams(params).toString();
+    return fetch(url, { mode:'cors' }).then(function(r){ return r.json(); });
+  }
+
+  // ── UTILIDADES ──
+  function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+
+  function toast(msg, tipo) {
+    var t=document.getElementById('toast'); t.textContent=msg; t.className='toast vis '+(tipo||'');
+    setTimeout(function(){ t.classList.remove('vis'); }, 3000);
+  }
+
+  function mostrarError(msg) { document.getElementById('listaTickets').innerHTML='<div class="vacio">⚠️ '+msg+'</div>'; }
+
+  function setMsg(id, txt, tipo) { var el=document.getElementById(id); el.textContent=txt; el.className='msg '+tipo; }
+  function clearMsg(id) { document.getElementById(id).className='msg'; }
+</script>
+</body>
+</html>
