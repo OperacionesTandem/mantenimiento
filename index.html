@@ -407,48 +407,49 @@
     reader.readAsDataURL(file);
   }
 
-function enviarTicket(e) {
-  e.preventDefault();
-  var prioEl = document.querySelector('.prioridad-card.sel input');
-  if (!prioEl) { alert('Por favor selecciona el nivel de prioridad.'); return; }
+  function enviarTicket(e) {
+    e.preventDefault();
+    var prioEl = document.querySelector('.prioridad-card.sel input');
+    if (!prioEl) { alert('Por favor selecciona el nivel de prioridad.'); return; }
 
-  var emailUsuario = document.getElementById('email').value.trim();
+    var emailUsuario = document.getElementById('email').value.trim();
 
-  document.getElementById('loadingOverlay').classList.add('visible');
-  document.getElementById('btnEnviar').disabled = true;
-
-  var params = new URLSearchParams({
-    accion:       'crearTicket',
-    nombre:       document.getElementById('nombre').value.trim(),
-    email:        emailUsuario,
-    local:        document.getElementById('local').value,
-    zona:         document.getElementById('zona').value,
-    descripcion:  document.getElementById('descripcion').value.trim(),
-    estadoEquipo: document.getElementById('estadoEquipo').value,
-    impacto:      document.getElementById('impacto').value,
-    frecuencia:   frecuenciaVal,
-    accionesProv: document.getElementById('accionesProv').value.trim(),
-    prioridad:    prioEl.value,
-  });
-
-  // Enviar con no-cors — no podemos leer la respuesta pero el ticket SE CREA
-  fetch(URL_APPS_SCRIPT + '?' + params.toString(), { mode: 'no-cors' })
-    .then(function() {
-      document.getElementById('loadingOverlay').classList.remove('visible');
-      document.getElementById('formTicket').style.display = 'none';
-      // Mostrar éxito — el email de confirmación llegará en breve
-      document.getElementById('resNumTicket').textContent = 'Revisa tu email ' + emailUsuario;
-      document.getElementById('resultadoOK').style.display = 'block';
-      document.getElementById('btnEnviar').disabled = false;
-    })
-    .catch(function() {
-      document.getElementById('loadingOverlay').classList.remove('visible');
-      document.getElementById('btnEnviar').disabled = false;
-      document.getElementById('formTicket').style.display = 'block';
-      document.getElementById('resError').textContent = 'Error de conexión. Comprueba tu internet e inténtalo de nuevo.';
-      document.getElementById('resultadoERR').style.display = 'block';
+    var params = new URLSearchParams({
+      accion:       'crearTicket',
+      nombre:       document.getElementById('nombre').value.trim(),
+      email:        emailUsuario,
+      local:        document.getElementById('local').value,
+      zona:         document.getElementById('zona').value,
+      descripcion:  document.getElementById('descripcion').value.trim(),
+      estadoEquipo: document.getElementById('estadoEquipo').value,
+      impacto:      document.getElementById('impacto').value,
+      frecuencia:   frecuenciaVal,
+      accionesProv: document.getElementById('accionesProv').value.trim(),
+      prioridad:    prioEl.value,
     });
-}
+
+    document.getElementById('loadingOverlay').classList.add('visible');
+    document.getElementById('btnEnviar').disabled = true;
+
+    // no-cors: el navegador envía la petición sin restricciones
+    // No podemos leer la respuesta pero el ticket se crea igualmente
+    fetch(URL_APPS_SCRIPT + '?' + params.toString(), { mode: 'no-cors' })
+      .then(function() {
+        document.getElementById('loadingOverlay').classList.remove('visible');
+        document.getElementById('formTicket').style.display = 'none';
+        document.getElementById('resNumTicket').textContent = 'Recibirás confirmación en ' + emailUsuario;
+        document.getElementById('resultadoOK').style.display = 'block';
+        document.getElementById('resultadoERR').style.display = 'none';
+        document.getElementById('btnEnviar').disabled = false;
+      })
+      .catch(function() {
+        document.getElementById('loadingOverlay').classList.remove('visible');
+        document.getElementById('btnEnviar').disabled = false;
+        document.getElementById('formTicket').style.display = 'block';
+        document.getElementById('resError').textContent = 'Error de conexión. Comprueba tu internet e inténtalo de nuevo.';
+        document.getElementById('resultadoERR').style.display = 'block';
+      });
+  }
 
   function resetForm() {
     document.getElementById('formTicket').reset();
