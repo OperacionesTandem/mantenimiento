@@ -370,7 +370,7 @@
 
 <script>
   // ⚠️ CAMBIA ESTA URL POR LA DE TU WEB APP DE APPS SCRIPT
-  var URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxL7he3zWPJtFPxij-F-bHXIcbgNlMvxJO7HhppoPCHbU_mh5huzzTBjzAuAZMf9-Q2/exec";
+  var URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbw8NKiWyeA-2RfRGWZBk1FJ8xvDPhPn61R17hqDRk9MqUv0m82Z1opKX95w4jEklXldIA/exec";
 
   var fotoBase64   = "";
   var fotoNombre   = "";
@@ -407,58 +407,78 @@
     reader.readAsDataURL(file);
   }
 
-  function enviarTicket(e) {
-    e.preventDefault();
-    var prioEl = document.querySelector('.prioridad-card.sel input');
-    if (!prioEl) { alert('Por favor selecciona el nivel de prioridad.'); return; }
+function enviarTicket(e) {
+  e.preventDefault();
+  var prioEl = document.querySelector('.prioridad-card.sel input');
+  if (!prioEl) { alert('Por favor selecciona el nivel de prioridad.'); return; }
 
-    var params = new URLSearchParams({
-      accion:       'crearTicket',
-      nombre:       document.getElementById('nombre').value.trim(),
-      email:        document.getElementById('email').value.trim(),
-      local:        document.getElementById('local').value,
-      zona:         document.getElementById('zona').value,
-      descripcion:  document.getElementById('descripcion').value.trim(),
-      estadoEquipo: document.getElementById('estadoEquipo').value,
-      impacto:      document.getElementById('impacto').value,
-      frecuencia:   frecuenciaVal,
-      accionesProv: document.getElementById('accionesProv').value.trim(),
-      prioridad:    prioEl.value,
-    });
+  document.getElementById('loadingOverlay').classList.add('visible');
+  document.getElementById('btnEnviar').disabled = true;
+  document.getElementById('formTicket').style.display = 'none';
 
-    // La foto se envía solo si es pequeña (GET tiene límite de URL)
-    // Para fotos usamos una llamada separada o las omitimos en la URL
-    if (fotoBase64 && fotoBase64.length < 50000) {
-      params.append('fotoBase64', fotoBase64);
-      params.append('fotoNombre', fotoNombre);
-    }
+  // Crear un iframe oculto para recibir la respuesta
+  var iframe = document.createElement('iframe');
+  iframe.name = 'respuestaFrame';
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
 
-    document.getElementById('loadingOverlay').classList.add('visible');
-    document.getElementById('btnEnviar').disabled = true;
-    document.getElementById('formTicket').style.display = 'none';
+  // Crear formulario nativo que envía a Apps Script
+  var form = document.createElement('form');
+  form.method = 'GET';
+  form.action = URL_APPS_SCRIPT;
+  form.target = 'respuestaFrame';
 
-    fetch(URL_APPS_SCRIPT + '?' + params.toString())
-      .then(function(r) { return r.json(); })
-      .then(function(res) {
-        document.getElementById('loadingOverlay').classList.remove('visible');
-        if (res.ok) {
-          document.getElementById('resNumTicket').textContent = 'Ticket Nº ' + res.data.numTicket;
-          document.getElementById('resultadoOK').style.display = 'block';
-        } else {
-          document.getElementById('resError').textContent = res.error || 'Error desconocido.';
-          document.getElementById('resultadoERR').style.display = 'block';
-          document.getElementById('formTicket').style.display = 'block';
-        }
-        document.getElementById('btnEnviar').disabled = false;
-      })
-      .catch(function(err) {
-        document.getElementById('loadingOverlay').classList.remove('visible');
-        document.getElementById('btnEnviar').disabled = false;
-        document.getElementById('formTicket').style.display = 'block';
-        document.getElementById('resError').textContent = 'Error de conexión: ' + err;
+  var campos = {
+    accion:       'crearTicket',
+    nombre:       document.getElementById('nombre').value.trim(),
+    email:        document.getElementById('email').value.trim(),
+    local:        document.getElementById('local').value,
+    zona:         document.getElementById('zona').value,
+    descripcion:  document.getElementById('descripcion').value.trim(),
+    estadoEquipo: document.getElementById('estadoEquipo').value,
+    impacto:      document.getElementById('impacto').value,
+    frecuencia:   frecuenciaVal,
+    accionesProv: document.getElementById('accionesProv').value.trim(),
+    prioridad:    prioEl.value,
+  };
+
+  Object.keys(campos).forEach(function(k) {
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = k;
+    input.value = campos[k];
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+
+  // Esperar respuesta del iframe
+  iframe.onload = function() {
+    try {
+      var texto = iframe.contentDocument.body.innerText;
+      var res   = JSON.parse(texto);
+      document.getElementById('loadingOverlay').classList.remove('visible');
+      document.getElementById('btnEnviar').disabled = false;
+      if (res.ok) {
+        document.getElementById('resNumTicket').textContent = 'Ticket Nº ' + res.data.numTicket;
+        document.getElementById('resultadoOK').style.display = 'block';
+      } else {
+        document.getElementById('resError').textContent = res.error || 'Error desconocido.';
         document.getElementById('resultadoERR').style.display = 'block';
-      });
-  }
+        document.getElementById('formTicket').style.display = 'block';
+      }
+    } catch(err) {
+      document.getElementById('loadingOverlay').classList.remove('visible');
+      document.getElementById('btnEnviar').disabled = false;
+      document.getElementById('formTicket').style.display = 'block';
+      document.getElementById('resError').textContent = 'Error al procesar la respuesta.';
+      document.getElementById('resultadoERR').style.display = 'block';
+    }
+    document.body.removeChild(form);
+    document.body.removeChild(iframe);
+  };
+}
 
   function resetForm() {
     document.getElementById('formTicket').reset();
