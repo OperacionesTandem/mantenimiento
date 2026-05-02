@@ -437,16 +437,39 @@
   function pad(n) { return String(n).padStart(2,'0'); }
 
   // ── TICKETS ──
-  function cargarTickets() {
-    document.getElementById('listaTickets').innerHTML = '<div class="cargando"><span class="sp"></span>Cargando tickets...</div>';
-    api({ accion:'obtenerTickets', filtroLocal:'todos', filtroEstado:'todos', filtroPrioridad:'todas', token: tokenActual })
-      .then(function(res) {
-        if (res.ok) {
-          todosTickets = res.data.tickets;
-          actualizarStats(); actualizarContadores(); renderTickets();
-        } else { mostrarError('Error: ' + res.error); }
-      }).catch(function(e) { mostrarError('Error de conexión.'); });
-  }
+function cargarTickets() {
+  document.getElementById('listaTickets').innerHTML = '<div class="cargando"><span class="sp"></span>Cargando tickets...</div>';
+  
+  var url = URL_API + '?' + new URLSearchParams({
+    accion: 'obtenerTickets',
+    filtroLocal: 'todos',
+    filtroEstado: 'todos',
+    filtroPrioridad: 'todas'
+  }).toString();
+
+  fetch(url, { redirect:'follow', mode:'cors', credentials:'omit' })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      console.log("Respuesta:", JSON.stringify(res).substring(0,200));
+      if (res.ok && res.data && res.data.tickets) {
+        todosTickets = res.data.tickets;
+        actualizarStats();
+        actualizarContadores();
+        renderTickets();
+      } else if (res.ok && res.data && res.data.data && res.data.data.tickets) {
+        // Doble anidamiento
+        todosTickets = res.data.data.tickets;
+        actualizarStats();
+        actualizarContadores();
+        renderTickets();
+      } else {
+        mostrarError('Formato inesperado: ' + JSON.stringify(res).substring(0,100));
+      }
+    })
+    .catch(function(e) {
+      mostrarError('Error de conexión: ' + e.message);
+    });
+}
 
   function actualizarStats() {
     var ab = todosTickets.filter(function(t) { return t.estado !== 'Cerrado' && t.estado !== 'Resuelto'; });
