@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activos — Grupo Tandem Gastronómico</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
+  :root { --negro:#1a1a1a; --crema:#f7f4ef; --dorado:#c4a35a; --texto:#2d2d2d; --gris:#888; --borde:#ddd8ce; --p1:#C0392B; --p2:#E67E22; --p3:#D4AC0D; --p4:#27AE60; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Sans',sans-serif; background:#f0ede7; color:var(--texto); min-height:100vh; }
+
+  /* LOGIN */
+  #vistaLogin { min-height:100vh; background:var(--crema); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+  .logo-area { text-align:center; margin-bottom:28px; }
+  .logo-marca { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:400; color:var(--negro); }
+  .logo-sub { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--gris); margin-top:4px; }
+  .card { background:#fff; border-radius:8px; padding:36px 32px; width:100%; max-width:380px; box-shadow:0 4px 20px rgba(0,0,0,.07); border:1px solid var(--borde); }
+  .card-titulo { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:400; color:var(--negro); margin-bottom:6px; }
+  .card-desc { font-size:12px; color:var(--gris); line-height:1.6; margin-bottom:24px; }
+  .campo { margin-bottom:14px; }
+  .campo label { display:block; font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.5px; color:var(--texto); margin-bottom:5px; }
+  .campo input { width:100%; font-family:'DM Sans',sans-serif; font-size:14px; border:1px solid var(--borde); border-radius:4px; padding:10px 12px; outline:none; color:var(--texto); transition:border-color .2s; }
+  .campo input:focus { border-color:var(--negro); }
+  .campo-codigo input { font-size:22px; font-weight:600; letter-spacing:6px; text-align:center; font-family:monospace; }
+  .btn { width:100%; padding:12px; background:var(--negro); color:#fff; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; border:none; border-radius:4px; cursor:pointer; margin-top:6px; }
+  .btn:disabled { background:var(--gris); cursor:not-allowed; }
+  .btn-sec { width:100%; padding:9px; background:none; color:var(--gris); font-family:'DM Sans',sans-serif; font-size:11px; border:1px solid var(--borde); border-radius:4px; cursor:pointer; margin-top:8px; }
+  .msg { padding:9px 12px; border-radius:4px; font-size:12px; margin-bottom:14px; display:none; }
+  .msg.error { background:#fdf1f0; border:1px solid #f5b8b3; color:var(--p1); display:block; }
+  .paso { display:none; } .paso.activo { display:block; }
+  .email-tag { display:inline-block; background:var(--crema); padding:2px 10px; border-radius:20px; font-size:12px; color:var(--negro); font-weight:500; margin:3px 0 6px; }
+  .timer { font-size:11px; color:var(--gris); text-align:center; margin-top:10px; }
+  .timer span { font-weight:600; color:var(--negro); }
+  .sp-btn { display:inline-block; width:12px; height:12px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:5px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* PANEL ACTIVOS */
+  #vistaActivos { display:none; }
+  .topbar { background:var(--negro); padding:0 20px; height:52px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+  .topbar-marca { font-family:'Cormorant Garamond',serif; color:#fff; font-size:16px; }
+  .topbar-right { display:flex; align-items:center; gap:8px; }
+  .topbar-badge { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--dorado); border:1px solid var(--dorado); padding:3px 8px; border-radius:2px; }
+  .topbar-btn { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:#aaa; background:none; border:1px solid #333; padding:5px 10px; border-radius:3px; cursor:pointer; }
+  .topbar-btn:hover { color:#fff; border-color:#666; }
+
+  .main { max-width:1100px; margin:0 auto; padding:24px 16px; }
+
+  /* STATS */
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
+  .stat-card { background:#fff; border-radius:6px; padding:14px 16px; border-top:3px solid var(--borde); }
+  .stat-card.verde { border-top-color:var(--p4); }
+  .stat-card.rojo  { border-top-color:var(--p1); }
+  .stat-card.amarillo { border-top-color:var(--p3); }
+  .stat-num { font-size:28px; font-weight:300; color:var(--negro); }
+  .stat-label { font-size:10px; color:var(--gris); text-transform:uppercase; letter-spacing:.5px; margin-top:3px; }
+
+  /* TOOLBAR */
+  .toolbar { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .toolbar-titulo { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:400; flex:1; }
+  .busqueda { border:1px solid var(--borde); border-radius:4px; padding:7px 10px; font-size:12px; font-family:'DM Sans',sans-serif; outline:none; background:#fff; width:180px; }
+  .select-filtro { border:1px solid var(--borde); border-radius:4px; padding:7px 10px; font-size:12px; font-family:'DM Sans',sans-serif; outline:none; background:#fff; }
+  .btn-nuevo { padding:8px 16px; font-size:11px; letter-spacing:1px; text-transform:uppercase; background:var(--negro); color:#fff; border:none; border-radius:4px; cursor:pointer; }
+
+  /* GRID DE ACTIVOS */
+  .activos-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:14px; }
+
+  .activo-card { background:#fff; border-radius:8px; border:1px solid var(--borde); overflow:hidden; transition:box-shadow .2s; }
+  .activo-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08); }
+
+  .activo-header { padding:14px 16px; display:flex; align-items:flex-start; justify-content:space-between; border-bottom:1px solid #f5f3ef; }
+  .activo-id { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--gris); margin-bottom:3px; }
+  .activo-nombre { font-size:14px; font-weight:500; color:var(--negro); }
+  .activo-local { font-size:11px; color:var(--gris); margin-top:2px; }
+  .garantia-badge { font-size:10px; padding:3px 8px; border-radius:10px; font-weight:500; white-space:nowrap; flex-shrink:0; margin-left:8px; }
+  .garantia-ok  { background:#f0faf4; color:var(--p4); }
+  .garantia-exp { background:#fdf1f0; color:var(--p1); }
+  .garantia-na  { background:#f5f5f5; color:var(--gris); }
+
+  .activo-body { padding:12px 16px; }
+  .activo-info { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .info-item label { font-size:9px; text-transform:uppercase; letter-spacing:.8px; color:#bbb; display:block; margin-bottom:2px; }
+  .info-item span { font-size:12px; color:var(--texto); }
+
+  .activo-stats { display:flex; gap:8px; margin-bottom:12px; }
+  .astat { background:var(--crema); border-radius:4px; padding:6px 10px; text-align:center; flex:1; }
+  .astat .n { font-size:18px; font-weight:300; color:var(--negro); }
+  .astat .l { font-size:9px; text-transform:uppercase; letter-spacing:.5px; color:var(--gris); }
+
+  .activo-acciones { display:flex; gap:8px; }
+  .btn-qr { flex:1; padding:8px; font-size:11px; letter-spacing:1px; text-transform:uppercase; background:var(--negro); color:#fff; border:none; border-radius:4px; cursor:pointer; }
+  .btn-editar { padding:8px 12px; font-size:11px; background:none; color:var(--gris); border:1px solid var(--borde); border-radius:4px; cursor:pointer; }
+  .btn-editar:hover { border-color:var(--negro); color:var(--negro); }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100; align-items:center; justify-content:center; padding:16px; }
+  .modal-overlay.visible { display:flex; }
+  .modal { background:#fff; border-radius:8px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; }
+  .modal-header { padding:20px 24px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#fff; }
+  .modal-titulo { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:400; }
+  .btn-cerrar { background:none; border:none; font-size:20px; cursor:pointer; color:var(--gris); padding:0 4px; }
+  .modal-body { padding:24px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-campo { display:flex; flex-direction:column; gap:5px; }
+  .form-campo.full { grid-column:1/-1; }
+  .form-campo label { font-size:11px; font-weight:500; color:var(--texto); }
+  .form-campo label .req { color:var(--p1); }
+  .form-campo input, .form-campo select, .form-campo textarea {
+    font-family:'DM Sans',sans-serif; font-size:13px; border:1px solid var(--borde);
+    padding:9px 12px; border-radius:4px; outline:none; color:var(--texto); transition:border-color .2s;
+  }
+  .form-campo input:focus, .form-campo select:focus, .form-campo textarea:focus { border-color:var(--negro); }
+  .form-campo textarea { min-height:70px; resize:vertical; }
+  .modal-footer { padding:16px 24px; border-top:1px solid var(--borde); display:flex; gap:10px; justify-content:flex-end; sticky; bottom:0; background:#fff; }
+  .btn-guardar-modal { padding:10px 24px; background:var(--negro); color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:12px; letter-spacing:1px; text-transform:uppercase; }
+  .btn-cancelar { padding:10px 16px; background:none; color:var(--gris); border:1px solid var(--borde); border-radius:4px; cursor:pointer; font-size:12px; }
+
+  /* MODAL QR */
+  .modal-qr { background:#fff; border-radius:8px; width:100%; max-width:420px; }
+  .qr-content { padding:28px; text-align:center; }
+  .qr-nombre { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:400; margin-bottom:4px; }
+  .qr-info { font-size:12px; color:var(--gris); margin-bottom:20px; }
+  #qrCanvas { border:1px solid var(--borde); border-radius:4px; margin-bottom:16px; }
+  .qr-url { font-size:10px; color:var(--gris); word-break:break-all; margin-bottom:16px; background:var(--crema); padding:8px 12px; border-radius:4px; }
+  .btn-imprimir { padding:10px 24px; background:var(--negro); color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:12px; letter-spacing:1px; text-transform:uppercase; margin-right:8px; }
+  .btn-descargar { padding:10px 16px; background:none; color:var(--gris); border:1px solid var(--borde); border-radius:4px; cursor:pointer; font-size:12px; }
+
+  .sp { display:inline-block; width:18px; height:18px; border:2px solid #ddd; border-top-color:var(--negro); border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:6px; }
+  .vacio { text-align:center; padding:48px; color:var(--gris); font-size:13px; }
+  .cargando { text-align:center; padding:48px; color:var(--gris); font-size:12px; }
+  .toast { position:fixed; bottom:20px; right:20px; background:var(--negro); color:#fff; padding:11px 18px; border-radius:6px; font-size:12px; z-index:300; transform:translateY(60px); opacity:0; transition:all .3s; }
+  .toast.vis { transform:translateY(0); opacity:1; }
+  .toast.ex { border-left:3px solid var(--p4); }
+  .toast.er { border-left:3px solid var(--p1); }
+
+  @media print {
+    body > *:not(#printArea) { display:none !important; }
+    #printArea { display:block !important; }
+  }
+  #printArea { display:none; }
+
+  @media (max-width:600px) {
+    .stats-row { grid-template-columns:repeat(2,1fr); }
+    .form-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="vistaLogin">
+  <div class="logo-area">
+    <div class="logo-marca">Grupo Tandem Gastronómico</div>
+    <div class="logo-sub">Gestión de Activos · Acceso restringido</div>
+  </div>
+  <div class="card">
+    <div class="paso activo" id="paso1">
+      <div class="card-titulo">🔐 Acceso</div>
+      <div class="card-desc">Introduce tu email autorizado para recibir el código de acceso.</div>
+      <div id="msg1" class="msg"></div>
+      <div class="campo"><label>Email</label>
+        <input type="email" id="inputEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')solicitarCodigo()">
+      </div>
+      <button class="btn" id="btnSolicitar" onclick="solicitarCodigo()">Enviar código de acceso</button>
+    </div>
+    <div class="paso" id="paso2">
+      <div class="card-titulo">✉️ Código enviado</div>
+      <div class="card-desc">Código enviado a:<br><span class="email-tag" id="emailMostrado"></span><br>Revisa tu bandeja y el spam.</div>
+      <div id="msg2" class="msg"></div>
+      <div class="campo campo-codigo"><label>Código de acceso</label>
+        <input type="text" id="inputCodigo" placeholder="000000" maxlength="6" inputmode="numeric"
+               onkeydown="if(event.key==='Enter')verificarCodigo()" oninput="this.value=this.value.replace(/\D/g,'')">
+      </div>
+      <button class="btn" id="btnVerificar" onclick="verificarCodigo()">Acceder</button>
+      <button class="btn-sec" onclick="volverPaso1()">← Usar otro email</button>
+      <div class="timer">Válido <span id="cuentaAtras">15:00</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL ACTIVOS -->
+<div id="vistaActivos">
+  <div class="topbar">
+    <div class="topbar-marca">Grupo Tandem Gastronómico · Activos</div>
+    <div class="topbar-right">
+      <span class="topbar-badge" id="badgeUsuario">Operaciones</span>
+      <a href="/mantenimiento/panel" style="text-decoration:none;"><button class="topbar-btn">← Panel tickets</button></a>
+      <button class="topbar-btn" onclick="cerrarSesion()" style="border-color:#444;color:#666;">Salir</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="stats-row">
+      <div class="stat-card verde"><div class="stat-num" id="stTotal">—</div><div class="stat-label">Activos totales</div></div>
+      <div class="stat-card verde"><div class="stat-num" id="stGarOk">—</div><div class="stat-label">En garantía</div></div>
+      <div class="stat-card rojo"><div class="stat-num" id="stGarExp">—</div><div class="stat-label">Garantía expirada</div></div>
+      <div class="stat-card amarillo"><div class="stat-num" id="stTickets">—</div><div class="stat-label">Tickets totales</div></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="toolbar-titulo">Base de datos de activos</div>
+      <input class="busqueda" type="search" id="busqueda" placeholder="Buscar..." oninput="renderActivos()">
+      <select class="select-filtro" id="filtroLocal" onchange="renderActivos()">
+        <option value="todos">Todos los locales</option>
+        <option>Maipi Bar</option>
+        <option>La Oficina de Carito y Germán</option>
+        <option>Doña Petrona</option>
+        <option>Fierro</option>
+        <option>Estudio Tandem</option>
+      </select>
+      <select class="select-filtro" id="filtroCat" onchange="renderActivos()">
+        <option value="todas">Todas las categorías</option>
+        <option>Maquinaria de cocina</option>
+        <option>Instalaciones</option>
+        <option>Climatización</option>
+        <option>Mobiliario</option>
+        <option>Equipamiento de sala</option>
+        <option>Equipamiento de barra</option>
+        <option>Refrigeración</option>
+        <option>Otro</option>
+      </select>
+      <button class="btn-nuevo" onclick="abrirModalNuevo()">+ Nuevo activo</button>
+    </div>
+
+    <div id="listaActivos" class="activos-grid">
+      <div class="cargando" style="grid-column:1/-1;"><span class="sp"></span>Cargando activos...</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO/EDITAR ACTIVO -->
+<div class="modal-overlay" id="modalActivo">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-titulo" id="modalTitulo">Nuevo activo</div>
+      <button class="btn-cerrar" onclick="cerrarModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="campoFila">
+      <input type="hidden" id="campoId">
+      <div class="form-grid">
+        <div class="form-campo full">
+          <label>Nombre del activo <span class="req">*</span></label>
+          <input type="text" id="campoNombre" placeholder="Ej: Horno de convección principal">
+        </div>
+        <div class="form-campo">
+          <label>Local <span class="req">*</span></label>
+          <select id="campoLocal">
+            <option value="">— Selecciona —</option>
+            <option>Maipi Bar</option>
+            <option>La Oficina de Carito y Germán</option>
+            <option>Doña Petrona</option>
+            <option>Fierro</option>
+            <option>Estudio Tandem</option>
+          </select>
+        </div>
+        <div class="form-campo">
+          <label>Zona <span class="req">*</span></label>
+          <select id="campoZona">
+            <option value="">— Selecciona —</option>
+            <option>Barra</option><option>Sala / Comedor</option><option>Cocina</option>
+            <option>Baños</option><option>Terraza</option><option>Almacén / Bodega</option>
+            <option>Zona de frío / Cámaras</option><option>Oficina</option>
+            <option>Fachada / Exterior</option>
+            <option>Instalaciones generales (electricidad, fontanería, climatización)</option>
+          </select>
+        </div>
+        <div class="form-campo">
+          <label>Categoría <span class="req">*</span></label>
+          <select id="campoCat">
+            <option value="">— Selecciona —</option>
+            <option>Maquinaria de cocina</option><option>Instalaciones</option>
+            <option>Climatización</option><option>Mobiliario</option>
+            <option>Equipamiento de sala</option><option>Equipamiento de barra</option>
+            <option>Refrigeración</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="form-campo">
+          <label>Marca</label>
+          <input type="text" id="campoMarca" placeholder="Ej: Rational">
+        </div>
+        <div class="form-campo">
+          <label>Modelo</label>
+          <input type="text" id="campoModelo" placeholder="Ej: iCombi Pro 6-1/1">
+        </div>
+        <div class="form-campo">
+          <label>Número de serie</label>
+          <input type="text" id="campoSerie" placeholder="Nº de serie">
+        </div>
+        <div class="form-campo">
+          <label>Fecha de compra (dd/mm/aaaa)</label>
+          <input type="text" id="campoFechaCompra" placeholder="01/01/2024">
+        </div>
+        <div class="form-campo">
+          <label>Garantía hasta (dd/mm/aaaa)</label>
+          <input type="text" id="campoGarantia" placeholder="01/01/2026">
+        </div>
+        <div class="form-campo">
+          <label>Proveedor</label>
+          <input type="text" id="campoProveedor" placeholder="Nombre del proveedor">
+        </div>
+        <div class="form-campo">
+          <label>Teléfono SAT</label>
+          <input type="tel" id="campoTelSat" placeholder="Servicio técnico oficial">
+        </div>
+        <div class="form-campo full">
+          <label>Notas</label>
+          <textarea id="campoNotas" placeholder="Observaciones, ubicación exacta, instrucciones especiales..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-guardar-modal" onclick="guardarActivo()">Guardar activo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL QR -->
+<div class="modal-overlay" id="modalQR">
+  <div class="modal modal-qr">
+    <div class="modal-header">
+      <div class="modal-titulo">Código QR del activo</div>
+      <button class="btn-cerrar" onclick="cerrarModalQR()">×</button>
+    </div>
+    <div class="qr-content">
+      <div class="qr-nombre" id="qrNombre"></div>
+      <div class="qr-info" id="qrInfo"></div>
+      <canvas id="qrCanvas" width="220" height="220"></canvas>
+      <div class="qr-url" id="qrUrl"></div>
+      <button class="btn-imprimir" onclick="imprimirQR()">🖨️ Imprimir</button>
+      <button class="btn-descargar" onclick="descargarQR()">⬇️ Descargar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ÁREA DE IMPRESIÓN -->
+<div id="printArea"></div>
+
+<div class="toast" id="toast"></div>
+
+<!-- QR Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+  var URL_API  = "https://script.google.com/macros/s/AKfycbw8NKiWyeA-2RfRGWZBk1FJ8xvDPhPn61R17hqDRk9MqUv0m82Z1opKX95w4jEklXldIA/exec";
+  var URL_BASE = "https://operacionestandem.github.io/mantenimiento";
+
+  var emailActual = "", tokenActual = "", rolActual = "";
+  var timer = null, segs = 900;
+  var todosActivos = [];
+  var qrActual = null;
+
+  // ── SESIÓN ──
+  window.addEventListener('load', function() {
+    var token = localStorage.getItem('activosToken') || localStorage.getItem('panelToken');
+    var email = localStorage.getItem('activosEmail') || localStorage.getItem('panelEmail');
+    var rol   = localStorage.getItem('activosRol')   || localStorage.getItem('panelRol');
+    if (token && email) {
+      api({ accion:'verificarToken', token:token }).then(function(res) {
+        if (res.ok) abrirPanel(token, res.email||email, res.rol||rol);
+        else limpiarSesion();
+      }).catch(limpiarSesion);
+    }
+  });
+
+  function limpiarSesion() {
+    ['activosToken','activosEmail','activosRol'].forEach(function(k){ localStorage.removeItem(k); });
+  }
+
+  // ── LOGIN ──
+  function solicitarCodigo() {
+    var email = document.getElementById('inputEmail').value.trim();
+    if (!email) { setMsg('msg1','Introduce tu email.','error'); return; }
+    var btn = document.getElementById('btnSolicitar');
+    btn.innerHTML = '<span class="sp-btn"></span>Enviando...'; btn.disabled=true;
+    api({ accion:'solicitarCodigo', email:email }).then(function(res) {
+      btn.innerHTML = 'Enviar código de acceso'; btn.disabled=false;
+      if (res.ok) {
+        emailActual = email;
+        document.getElementById('emailMostrado').textContent = email;
+        document.getElementById('paso1').classList.remove('activo');
+        document.getElementById('paso2').classList.add('activo');
+        document.getElementById('inputCodigo').focus();
+        iniciarTimer();
+      } else setMsg('msg1', res.error||'Error.','error');
+    }).catch(function(){ btn.innerHTML='Enviar código de acceso'; btn.disabled=false; setMsg('msg1','Error de conexión.','error'); });
+  }
+
+  function verificarCodigo() {
+    var codigo = document.getElementById('inputCodigo').value.trim();
+    if (codigo.length!==6) { setMsg('msg2','Código de 6 dígitos.','error'); return; }
+    var btn = document.getElementById('btnVerificar');
+    btn.innerHTML='<span class="sp-btn"></span>Verificando...'; btn.disabled=true;
+    api({ accion:'verificarCodigo', email:emailActual, codigo:codigo }).then(function(res) {
+      btn.innerHTML='Acceder'; btn.disabled=false;
+      if (res.ok) {
+        clearInterval(timer);
+        localStorage.setItem('activosToken', res.token);
+        localStorage.setItem('activosEmail', res.email);
+        localStorage.setItem('activosRol',   res.rol);
+        abrirPanel(res.token, res.email, res.rol);
+      } else setMsg('msg2', res.error||'Código no válido.','error');
+    }).catch(function(){ btn.innerHTML='Acceder'; btn.disabled=false; setMsg('msg2','Error de conexión.','error'); });
+  }
+
+  function abrirPanel(token, email, rol) {
+    tokenActual=token; emailActual=email; rolActual=rol;
+    document.getElementById('vistaLogin').style.display='none';
+    document.getElementById('vistaActivos').style.display='block';
+    document.getElementById('badgeUsuario').textContent=email.split('@')[0];
+    cargarActivos();
+    inicializarHojaActivos();
+  }
+
+  function cerrarSesion() {
+    api({ accion:'cerrarSesion', token:tokenActual }).catch(function(){});
+    limpiarSesion(); location.reload();
+  }
+
+  function volverPaso1() {
+    clearInterval(timer);
+    document.getElementById('paso2').classList.remove('activo');
+    document.getElementById('paso1').classList.add('activo');
+    document.getElementById('inputCodigo').value=''; segs=900;
+  }
+
+  function iniciarTimer() {
+    segs=900; clearInterval(timer);
+    timer=setInterval(function(){
+      segs--;
+      document.getElementById('cuentaAtras').textContent=pad(Math.floor(segs/60))+':'+pad(segs%60);
+      if(segs<=0){ clearInterval(timer); setMsg('msg2','Código expirado.','error'); document.getElementById('btnVerificar').disabled=true; }
+    },1000);
+  }
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  // ── ACTIVOS ──
+  function inicializarHojaActivos() {
+    api({ accion:'inicializarActivos', token:tokenActual }).catch(function(){});
+  }
+
+  function cargarActivos() {
+    document.getElementById('listaActivos').innerHTML='<div class="cargando" style="grid-column:1/-1;"><span class="sp"></span>Cargando activos...</div>';
+    api({ accion:'obtenerActivos', soloActivos:'false', filtroLocal:'todos', token:tokenActual })
+      .then(function(res) {
+        if (res.ok && res.data) {
+          todosActivos = res.data.activos || [];
+          actualizarStats();
+          renderActivos();
+        } else mostrarError('Error al cargar activos.');
+      }).catch(function(){ mostrarError('Error de conexión.'); });
+  }
+
+  function actualizarStats() {
+    var garOk  = todosActivos.filter(function(a){ return a.garantiaOk; }).length;
+    var garExp = todosActivos.filter(function(a){ return a.garantiaExp; }).length;
+    var totalT = todosActivos.reduce(function(s,a){ return s+(a.numTickets||0); },0);
+    document.getElementById('stTotal').textContent   = todosActivos.length;
+    document.getElementById('stGarOk').textContent   = garOk;
+    document.getElementById('stGarExp').textContent  = garExp;
+    document.getElementById('stTickets').textContent = totalT;
+  }
+
+  function renderActivos() {
+    var busq  = (document.getElementById('busqueda').value||'').toLowerCase();
+    var fLoc  = document.getElementById('filtroLocal').value;
+    var fCat  = document.getElementById('filtroCat').value;
+
+    var f = todosActivos.filter(function(a) {
+      if (!a.activo) return false;
+      if (fLoc!=='todos' && a.local!==fLoc) return false;
+      if (fCat!=='todas' && a.categoria!==fCat) return false;
+      if (busq && !((a.nombre||'').toLowerCase().includes(busq)||(a.marca||'').toLowerCase().includes(busq)||(a.modelo||'').toLowerCase().includes(busq)||(a.id||'').toLowerCase().includes(busq))) return false;
+      return true;
+    });
+
+    if (!f.length) { document.getElementById('listaActivos').innerHTML='<div class="vacio" style="grid-column:1/-1;">No hay activos con los filtros seleccionados.</div>'; return; }
+    document.getElementById('listaActivos').innerHTML = f.map(renderCard).join('');
+  }
+
+  function renderCard(a) {
+    var gBadge = a.garantiaOk
+      ? '<span class="garantia-badge garantia-ok">✅ En garantía</span>'
+      : a.garantiaExp
+        ? '<span class="garantia-badge garantia-exp">⚠️ Garantía expirada</span>'
+        : '<span class="garantia-badge garantia-na">Sin datos</span>';
+
+    return '<div class="activo-card">'
+      +'<div class="activo-header">'
+      +'<div><div class="activo-id">'+esc(a.id)+'</div><div class="activo-nombre">'+esc(a.nombre)+'</div><div class="activo-local">'+esc(a.local)+' · '+esc(a.zona)+'</div></div>'
+      +gBadge
+      +'</div>'
+      +'<div class="activo-body">'
+      +'<div class="activo-info">'
+      +'<div class="info-item"><label>Categoría</label><span>'+esc(a.categoria)+'</span></div>'
+      +'<div class="info-item"><label>Marca / Modelo</label><span>'+esc(a.marca)+(a.modelo?' · '+esc(a.modelo):'')+'</span></div>'
+      +'<div class="info-item"><label>Nº Serie</label><span>'+(a.numSerie||'—')+'</span></div>'
+      +'<div class="info-item"><label>SAT</label><span>'+(a.telSat||'—')+'</span></div>'
+      +'</div>'
+      +'<div class="activo-stats">'
+      +'<div class="astat"><div class="n">'+( a.numTickets||0)+'</div><div class="l">Tickets</div></div>'
+      +'<div class="astat"><div class="n">'+(a.fechaCompra||'—')+'</div><div class="l">Compra</div></div>'
+      +'<div class="astat"><div class="n">'+(a.garantia||'—')+'</div><div class="l">Garantía</div></div>'
+      +'</div>'
+      +'<div class="activo-acciones">'
+      +'<button class="btn-qr" onclick="mostrarQR(\''+esc(a.id)+'\',\''+esc(a.nombre)+'\',\''+esc(a.local)+' · '+esc(a.zona)+'\')">📱 Ver QR</button>'
+      +'<button class="btn-editar" onclick=\'editarActivo('+JSON.stringify(a)+')\'>✏️ Editar</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }
+
+  // ── MODAL NUEVO/EDITAR ──
+  function abrirModalNuevo() {
+    document.getElementById('modalTitulo').textContent = 'Nuevo activo';
+    document.getElementById('campoFila').value = '';
+    document.getElementById('campoId').value   = '';
+    ['Nombre','Local','Zona','Cat','Marca','Modelo','Serie','FechaCompra','Garantia','Proveedor','TelSat','Notas'].forEach(function(c){
+      var el = document.getElementById('campo'+c);
+      if (el) el.value = '';
+    });
+    document.getElementById('modalActivo').classList.add('visible');
+  }
+
+  function editarActivo(a) {
+    document.getElementById('modalTitulo').textContent = 'Editar activo';
+    document.getElementById('campoFila').value        = a.fila;
+    document.getElementById('campoId').value          = a.id;
+    document.getElementById('campoNombre').value      = a.nombre     || '';
+    document.getElementById('campoLocal').value       = a.local      || '';
+    document.getElementById('campoZona').value        = a.zona       || '';
+    document.getElementById('campoCat').value         = a.categoria  || '';
+    document.getElementById('campoMarca').value       = a.marca      || '';
+    document.getElementById('campoModelo').value      = a.modelo     || '';
+    document.getElementById('campoSerie').value       = a.numSerie   || '';
+    document.getElementById('campoFechaCompra').value = a.fechaCompra|| '';
+    document.getElementById('campoGarantia').value    = a.garantia   || '';
+    document.getElementById('campoProveedor').value   = a.proveedor  || '';
+    document.getElementById('campoTelSat').value      = a.telSat     || '';
+    document.getElementById('campoNotas').value       = a.notas      || '';
+    document.getElementById('modalActivo').classList.add('visible');
+  }
+
+  function cerrarModal() { document.getElementById('modalActivo').classList.remove('visible'); }
+
+  function guardarActivo() {
+    var nombre = document.getElementById('campoNombre').value.trim();
+    var local  = document.getElementById('campoLocal').value;
+    var zona   = document.getElementById('campoZona').value;
+    var cat    = document.getElementById('campoCat').value;
+    if (!nombre || !local || !zona || !cat) { toast('Completa los campos obligatorios.','er'); return; }
+
+    var params = {
+      accion:      'guardarActivo',
+      token:       tokenActual,
+      fila:        document.getElementById('campoFila').value,
+      id:          document.getElementById('campoId').value,
+      nombre:      nombre,
+      local:       local,
+      zona:        zona,
+      categoria:   cat,
+      marca:       document.getElementById('campoMarca').value.trim(),
+      modelo:      document.getElementById('campoModelo').value.trim(),
+      numSerie:    document.getElementById('campoSerie').value.trim(),
+      fechaCompra: document.getElementById('campoFechaCompra').value.trim(),
+      garantia:    document.getElementById('campoGarantia').value.trim(),
+      proveedor:   document.getElementById('campoProveedor').value.trim(),
+      telSat:      document.getElementById('campoTelSat').value.trim(),
+      notas:       document.getElementById('campoNotas').value.trim(),
+    };
+
+    api(params).then(function(res) {
+      if (res.ok) {
+        toast('✅ Activo guardado correctamente','ex');
+        cerrarModal();
+        cargarActivos();
+      } else toast('❌ Error: '+(res.error||'desconocido'),'er');
+    }).catch(function(){ toast('❌ Error de conexión','er'); });
+  }
+
+  // ── QR ──
+  function mostrarQR(id, nombre, info) {
+    var url = URL_BASE + '/maquina?id=' + encodeURIComponent(id);
+    document.getElementById('qrNombre').textContent = nombre;
+    document.getElementById('qrInfo').textContent   = info;
+    document.getElementById('qrUrl').textContent    = url;
+
+    // Limpiar canvas anterior
+    var canvas = document.getElementById('qrCanvas');
+    var ctx    = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Generar QR
+    if (qrActual) { try { qrActual.clear(); } catch(e){} }
+    qrActual = new QRCode(canvas, {
+      text:   url,
+      width:  220,
+      height: 220,
+      colorDark:  '#1a1a1a',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    document.getElementById('modalQR').classList.add('visible');
+  }
+
+  function cerrarModalQR() { document.getElementById('modalQR').classList.remove('visible'); }
+
+  function imprimirQR() {
+    var nombre = document.getElementById('qrNombre').textContent;
+    var info   = document.getElementById('qrInfo').textContent;
+    var url    = document.getElementById('qrUrl').textContent;
+    var canvas = document.getElementById('qrCanvas');
+    var img    = canvas.toDataURL('image/png');
+
+    var printWin = window.open('','_blank','width=400,height=500');
+    printWin.document.write(
+      '<!DOCTYPE html><html><head><title>QR — '+nombre+'</title>'
+      +'<style>body{font-family:Georgia,serif;text-align:center;padding:30px;}'
+      +'h2{font-size:18px;font-weight:400;margin-bottom:4px;}'
+      +'p{font-size:12px;color:#888;margin-bottom:16px;}'
+      +'img{border:1px solid #ddd;border-radius:4px;}'
+      +'small{display:block;font-size:9px;color:#aaa;margin-top:10px;word-break:break-all;}'
+      +'</style></head><body>'
+      +'<h2>'+nombre+'</h2>'
+      +'<p>'+info+'</p>'
+      +'<img src="'+img+'" width="200" height="200">'
+      +'<small>'+url+'</small>'
+      +'</body></html>'
+    );
+    printWin.document.close();
+    printWin.focus();
+    setTimeout(function(){ printWin.print(); printWin.close(); }, 500);
+  }
+
+  function descargarQR() {
+    var canvas = document.getElementById('qrCanvas');
+    var nombre = document.getElementById('qrNombre').textContent.replace(/\s+/g,'_');
+    var link   = document.createElement('a');
+    link.download = 'QR_' + nombre + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  // ── API ──
+  function api(params) {
+    var url = URL_API + '?' + new URLSearchParams(params).toString();
+    return fetch(url, { redirect:'follow', mode:'cors', credentials:'omit' })
+      .then(function(r){ return r.json(); });
+  }
+
+  // ── UTILS ──
+  function esc(s){ return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+  function toast(msg,tipo){ var t=document.getElementById('toast'); t.textContent=msg; t.className='toast vis '+(tipo||''); setTimeout(function(){ t.classList.remove('vis'); },3000); }
+  function mostrarError(msg){ document.getElementById('listaActivos').innerHTML='<div class="vacio" style="grid-column:1/-1;">⚠️ '+msg+'</div>'; }
+  function setMsg(id,txt,tipo){ var el=document.getElementById(id); el.textContent=txt; el.className='msg '+tipo; }
+</script>
+</body>
+</html>
