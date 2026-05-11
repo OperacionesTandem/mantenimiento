@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Operaciones — Tándem</title>
+<style>
+  /* ── RESET & BASE ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:       #f4f3ef;
+    --surface:  #ffffff;
+    --border:   rgba(0,0,0,0.10);
+    --border-md:rgba(0,0,0,0.18);
+    --text:     #1a1a1a;
+    --text-2:   #5a5a5a;
+    --text-3:   #9a9a9a;
+    --purple:   #7F77DD; --purple-bg: #EEEDFE; --purple-dk: #3C3489;
+    --teal:     #1D9E75; --teal-bg:   #E1F5EE; --teal-dk:   #085041;
+    --amber:    #BA7517; --amber-bg:  #FAEEDA; --amber-dk:  #633806;
+    --red:      #D85A30; --red-bg:    #FAECE7; --red-dk:    #712B13;
+    --blue:     #185FA5; --blue-bg:   #E6F1FB; --blue-dk:   #0C447C;
+    --gray-bg:  #F1EFE8; --gray-dk:   #444441;
+    --radius:   10px; --radius-sm: 6px; --radius-lg: 14px;
+    --shadow:   0 1px 3px rgba(0,0,0,0.07);
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+
+  /* ── LAYOUT ── */
+  .app { display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar { background: var(--surface); border-bottom: 0.5px solid var(--border);
+            padding: 0 24px; height: 56px; display: flex; align-items: center;
+            justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+  .logo { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -.3px; }
+  .logo span { color: var(--purple); }
+  .user-chip { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--purple-bg);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 600; color: var(--purple-dk); }
+  .nav { display: flex; gap: 2px; }
+  .nav-btn { padding: 6px 14px; border-radius: 20px; border: none; background: transparent;
+             cursor: pointer; font-size: 13px; color: var(--text-2); transition: all .15s; }
+  .nav-btn:hover { background: var(--bg); color: var(--text); }
+  .nav-btn.active { background: var(--text); color: #fff; }
+
+  .main { flex: 1; padding: 20px 24px; max-width: 1200px; width: 100%; margin: 0 auto; }
+
+  /* ── VISTAS ── */
+  .vista { display: none; }
+  .vista.active { display: block; }
+
+  /* ── STATS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+  .stat-card { background: var(--surface); border: 0.5px solid var(--border);
+               border-radius: var(--radius); padding: 14px 16px; }
+  .stat-label { font-size: 11px; color: var(--text-3); text-transform: uppercase;
+                letter-spacing: .05em; margin-bottom: 6px; }
+  .stat-value { font-size: 26px; font-weight: 600; line-height: 1; }
+  .stat-sub { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+  .val-red    { color: var(--red); }
+  .val-amber  { color: var(--amber); }
+  .val-green  { color: var(--teal); }
+  .val-blue   { color: var(--blue); }
+
+  /* ── GRID PRINCIPAL ── */
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .card { background: var(--surface); border: 0.5px solid var(--border);
+          border-radius: var(--radius-lg); padding: 16px 18px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text);
+                display: flex; align-items: center; gap: 7px; }
+  .card-title svg { width: 15px; height: 15px; opacity: .5; }
+  .card-action { font-size: 12px; color: var(--text-3); cursor: pointer; text-decoration: none; }
+  .card-action:hover { color: var(--text); }
+  .card-full { grid-column: 1 / -1; }
+
+  /* ── TAREAS ── */
+  .task-row { display: flex; align-items: flex-start; gap: 10px;
+              padding: 9px 0; border-bottom: 0.5px solid var(--border); }
+  .task-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .task-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .task-body { flex: 1; min-width: 0; }
+  .task-title-text { font-size: 13px; color: var(--text); line-height: 1.35;
+                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .task-meta-row { display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .badge-maipi      { background: var(--purple-bg); color: var(--purple-dk); }
+  .badge-petrona    { background: var(--teal-bg);   color: var(--teal-dk); }
+  .badge-oficina    { background: var(--amber-bg);  color: var(--amber-dk); }
+  .badge-fierro1    { background: var(--red-bg);    color: var(--red-dk); }
+  .badge-fierro2    { background: var(--blue-bg);   color: var(--blue-dk); }
+  .badge-holding    { background: var(--gray-bg);   color: var(--gray-dk); }
+  .badge-todos      { background: var(--gray-bg);   color: var(--gray-dk); }
+  .badge-area       { background: var(--gray-bg);   color: var(--gray-dk); }
+  .badge-urgente    { background: var(--red-bg);    color: var(--red-dk); }
+  .badge-alta       { background: var(--amber-bg);  color: var(--amber-dk); }
+  .badge-media      { background: var(--blue-bg);   color: var(--blue-dk); }
+  .badge-baja       { background: var(--gray-bg);   color: var(--gray-dk); }
+  .badge-pendiente  { background: var(--amber-bg);  color: var(--amber-dk); }
+  .badge-en-curso   { background: var(--blue-bg);   color: var(--blue-dk); }
+  .badge-completada { background: var(--teal-bg);   color: var(--teal-dk); }
+  .badge-bloqueada  { background: var(--red-bg);    color: var(--red-dk); }
+  .task-date { font-size: 11px; color: var(--text-3); }
+  .task-date.vencida { color: var(--red); font-weight: 600; }
+  .task-check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border-md);
+                flex-shrink: 0; cursor: pointer; display: flex; align-items: center;
+                justify-content: center; margin-top: 2px; transition: all .15s; background: transparent; }
+  .task-check:hover { border-color: var(--teal); }
+  .task-check.done { background: var(--teal); border-color: var(--teal); }
+  .task-check.done::after { content: '✓'; color: #fff; font-size: 10px; font-weight: 700; }
+
+  /* ── LOCALES GRID ── */
+  .locales-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .local-card { border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .local-name { font-size: 12px; font-weight: 600; color: var(--text);
+                display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
+  .local-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .local-kpi { display: flex; justify-content: space-between; font-size: 11px;
+               color: var(--text-2); margin-bottom: 3px; }
+  .kv { font-weight: 600; color: var(--text); }
+  .kv.r { color: var(--red); } .kv.a { color: var(--amber); } .kv.g { color: var(--teal); }
+
+  /* ── TICKETS ── */
+  .ticket-row { display: flex; align-items: center; gap: 8px;
+                padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .ticket-row:last-child { border-bottom: none; }
+  .ticket-desc { flex: 1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ticket-local { font-size: 11px; color: var(--text-3); white-space: nowrap; }
+
+  /* ── REPORTE ── */
+  .report-row { display: flex; justify-content: space-between; align-items: center;
+                padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .report-row:last-child { border-bottom: none; }
+  .report-label { color: var(--text-2); }
+  .report-val { font-weight: 600; color: var(--text); }
+
+  /* ── BARRA INFERIOR ── */
+  .bottom-bar { background: var(--surface); border-top: 0.5px solid var(--border);
+                padding: 10px 24px; display: flex; align-items: center;
+                justify-content: space-between; font-size: 12px; color: var(--text-3); }
+  .bottom-actions { display: flex; gap: 8px; }
+  .btn { padding: 7px 14px; border-radius: var(--radius-sm); border: 0.5px solid var(--border-md);
+         background: transparent; color: var(--text); font-size: 13px; cursor: pointer;
+         display: flex; align-items: center; gap: 5px; transition: all .15s; }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--text); color: #fff; border-color: var(--text); }
+  .btn-primary:hover { opacity: .88; background: var(--text); }
+  .btn-danger { color: var(--red); border-color: var(--red-bg); }
+  .btn-danger:hover { background: var(--red-bg); }
+
+  /* ── MODAL NUEVA TAREA ── */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 200;
+             align-items: center; justify-content: center; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 24px;
+           width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-title { font-size: 16px; font-weight: 600; }
+  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer;
+                 color: var(--text-3); line-height: 1; padding: 0; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; color: var(--text-2); margin-bottom: 5px; display: block; font-weight: 500; }
+  .form-control { width: 100%; padding: 8px 12px; border: 0.5px solid var(--border-md);
+                  border-radius: var(--radius-sm); font-size: 13px; color: var(--text);
+                  background: var(--surface); font-family: inherit; transition: border .15s; }
+  .form-control:focus { outline: none; border-color: var(--purple); }
+  textarea.form-control { resize: vertical; min-height: 70px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .progress-bar-wrap { background: var(--bg); border-radius: 4px; height: 4px; margin-top: 6px; overflow: hidden; }
+  .progress-bar { height: 4px; background: var(--teal); border-radius: 4px; transition: width .3s; }
+
+  /* ── VISTA TAREAS COMPLETA ── */
+  .filters-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+  .filter-pill { padding: 5px 13px; border-radius: 20px; border: 0.5px solid var(--border-md);
+                 background: var(--surface); color: var(--text-2); font-size: 12px; cursor: pointer;
+                 transition: all .15s; white-space: nowrap; }
+  .filter-pill:hover { border-color: var(--text); color: var(--text); }
+  .filter-pill.active { background: var(--text); color: #fff; border-color: var(--text); }
+  .task-table { width: 100%; border-collapse: collapse; }
+  .task-table th { font-size: 11px; color: var(--text-3); text-transform: uppercase;
+                   letter-spacing: .05em; padding: 8px 12px; border-bottom: 0.5px solid var(--border);
+                   text-align: left; background: var(--surface); }
+  .task-table td { padding: 10px 12px; border-bottom: 0.5px solid var(--border);
+                   font-size: 13px; color: var(--text); vertical-align: middle; }
+  .task-table tr:hover td { background: var(--bg); }
+  .task-table tr.done-row td { opacity: .5; }
+  .task-table tr.done-row .task-title-text { text-decoration: line-through; }
+  .empty-state { text-align: center; padding: 40px; color: var(--text-3); font-size: 14px; }
+
+  /* ── LOGIN ── */
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center;
+                background: var(--bg); }
+  .login-card { background: var(--surface); border: 0.5px solid var(--border);
+                border-radius: var(--radius-lg); padding: 36px 32px; width: 340px; }
+  .login-logo { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .login-logo span { color: var(--purple); }
+  .login-sub { font-size: 13px; color: var(--text-2); margin-bottom: 28px; }
+  .login-err { font-size: 12px; color: var(--red); margin-top: 8px; display: none; }
+
+  /* ── NOTIFICACIÓN TOAST ── */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: #fff;
+           padding: 11px 18px; border-radius: var(--radius-sm); font-size: 13px; z-index: 999;
+           opacity: 0; transform: translateY(8px); transition: all .25s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── LOADING ── */
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--border-md);
+             border-top-color: var(--purple); border-radius: 50%;
+             animation: spin .7s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 700px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .dash-grid   { grid-template-columns: 1fr; }
+    .locales-grid { grid-template-columns: 1fr; }
+    .form-row, .form-row-3 { grid-template-columns: 1fr; }
+    .main { padding: 14px 14px; }
+    .topbar { padding: 0 14px; }
+    .nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-logo">Tándem <span>Ops</span></div>
+    <div class="login-sub">Panel de operaciones · Acceso gestor</div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-control" type="email" id="loginEmail"
+             placeholder="op.tandemg@gmail.com" autocomplete="email">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center"
+            onclick="hacerLogin()">Entrar al panel</button>
+    <div class="login-err" id="loginErr">Email no autorizado</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="appWrap" style="display:none">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo">Tándem <span>Ops</span></div>
+      <div class="nav">
+        <button class="nav-btn active" onclick="cambiarVista('dashboard', this)">Dashboard</button>
+        <button class="nav-btn" onclick="cambiarVista('tareas', this)">Tareas</button>
+        <button class="nav-btn" onclick="cambiarVista('reporte', this)">Reporte</button>
+      </div>
+    </div>
+    <div class="user-chip">
+      <div class="avatar" id="userAvatar">OP</div>
+      <span id="userEmail" style="font-size:12px"></span>
+    </div>
+  </div>
+
+  <!-- VISTAS -->
+  <div class="main">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="vista active" id="vistaDashboard">
+
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-label">Tareas hoy</div>
+          <div class="stat-value val-amber" id="sTareasHoy">—</div>
+          <div class="stat-sub" id="sTareasHoySub"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Vencidas</div>
+          <div class="stat-value val-red" id="sVencidas">—</div>
+          <div class="stat-sub">Requieren acción</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tickets abiertos</div>
+          <div class="stat-value val-blue" id="sTickets">—</div>
+          <div class="stat-sub">Sistema mantenimiento</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Completadas</div>
+          <div class="stat-value val-green" id="sCompletadas">—</div>
+          <div class="stat-sub">Esta semana</div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <!-- Tareas del día -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+              Tareas del día
+            </div>
+            <a class="card-action" onclick="cambiarVista('tareas', document.querySelector('.nav-btn:nth-child(2)'), 'hoy')">ver todas</a>
+          </div>
+          <div id="listaTareasHoy"><div class="empty-state">Cargando…</div></div>
+        </div>
+
+        <!-- Estado por local -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              Estado por local
+            </div>
+          </div>
+          <div class="locales-grid" id="localesGrid"><div class="empty-state">Cargando…</div></div>
+        </div>
+
+        <!-- Tickets mantenimiento -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+              Tickets mantenimiento
+            </div>
+            <a class="card-action" href="../mantenimiento" target="_blank">abrir panel ↗</a>
+          </div>
+          <div id="listaTickets"><div class="empty-state">Cargando…</div></div>
+        </div>
+
+        <!-- Datos para reporte -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Datos para reporte
+            </div>
+            <button class="btn btn-primary" style="font-size:12px;padding:5px 11px"
+                    onclick="enviarReporte()">Enviar por email</button>
+          </div>
+          <div id="datosReporte"><div class="empty-state">Cargando…</div></div>
+        </div>
+
+      </div><!-- /dash-grid -->
+    </div><!-- /vistaDashboard -->
+
+    <!-- ══ TAREAS ══ -->
+    <div class="vista" id="vistaTareas">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="filters-bar" id="filtersBar" style="margin-bottom:0;flex:1">
+          <button class="filter-pill active" onclick="setFiltro('todas',this)">Todas</button>
+          <button class="filter-pill" onclick="setFiltro('hoy',this)">Hoy</button>
+          <button class="filter-pill" onclick="setFiltro('vencidas',this)">Vencidas</button>
+          <button class="filter-pill" onclick="setFiltro('en-curso',this)">En curso</button>
+          <button class="filter-pill" onclick="setFiltro('urgente',this)">Urgentes</button>
+          <select class="form-control" id="filtroLocal" style="width:auto;padding:5px 10px;font-size:12px" onchange="renderTabla()">
+            <option value="">Todos los locales</option>
+          </select>
+          <select class="form-control" id="filtroArea" style="width:auto;padding:5px 10px;font-size:12px" onchange="renderTabla()">
+            <option value="">Todas las áreas</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="margin-left:10px;white-space:nowrap" onclick="abrirModal()">+ Nueva tarea</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th style="width:32px"></th>
+              <th>Tarea</th>
+              <th>Local</th>
+              <th>Área</th>
+              <th>Prioridad</th>
+              <th>Estado</th>
+              <th>Vencimiento</th>
+              <th>Prog.</th>
+              <th style="width:60px"></th>
+            </tr>
+          </thead>
+          <tbody id="tablaBody">
+            <tr><td colspan="9" class="empty-state">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /vistaTareas -->
+
+    <!-- ══ REPORTE ══ -->
+    <div class="vista" id="vistaReporte">
+      <div class="card" style="max-width:680px">
+        <div class="card-header">
+          <div class="card-title">Reporte semanal de operaciones</div>
+          <button class="btn btn-primary" onclick="enviarReporte()">Enviar a dirección</button>
+        </div>
+        <div id="reporteContenido"><div class="empty-state">Cargando…</div></div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <span id="bottomInfo">Panel de Operaciones Tándem</span>
+    <div class="bottom-actions">
+      <button class="btn" onclick="abrirModal()">+ Nueva tarea</button>
+      <a class="btn" href="../mantenimiento" target="_blank">Sistema mantenimiento ↗</a>
+      <button class="btn btn-primary" onclick="cambiarVista('reporte', document.querySelector('.nav-btn:nth-child(3)'))">Reporte semanal</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- MODAL NUEVA / EDITAR TAREA -->
+<div class="overlay" id="overlay" onclick="cerrarModalSiAfuera(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitulo">Nueva tarea</div>
+      <button class="modal-close" onclick="cerrarModal()">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Título *</label>
+      <input class="form-control" id="fTitulo" placeholder="Descripción de la tarea">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción / Notas</label>
+      <textarea class="form-control" id="fDesc" placeholder="Contexto, detalles, próximos pasos…"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Local</label>
+        <select class="form-control" id="fLocal"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Área funcional</label>
+        <select class="form-control" id="fArea"></select>
+      </div>
+    </div>
+    <div class="form-row-3">
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="form-control" id="fTipo"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prioridad</label>
+        <select class="form-control" id="fPrioridad"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <select class="form-control" id="fEstado"></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Fecha de vencimiento</label>
+        <input class="form-control" type="date" id="fFecha">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Recurrencia</label>
+        <select class="form-control" id="fRecurrencia">
+          <option value="">Sin recurrencia</option>
+          <option value="diaria">Diaria</option>
+          <option value="semanal">Semanal</option>
+          <option value="quincenal">Quincenal</option>
+          <option value="mensual">Mensual</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Recordatorio</label>
+        <select class="form-control" id="fRecordatorio">
+          <option value="0">Sin recordatorio</option>
+          <option value="30">30 minutos antes</option>
+          <option value="60">1 hora antes</option>
+          <option value="1440">1 día antes</option>
+          <option value="2880">2 días antes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ticket vinculado (opcional)</label>
+        <input class="form-control" id="fTicket" placeholder="ID del ticket de mantenimiento">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Progreso: <span id="fProgresoLabel">0</span>%</label>
+      <input type="range" id="fProgreso" min="0" max="100" value="0" step="5"
+             style="width:100%;margin-top:6px" oninput="document.getElementById('fProgresoLabel').textContent=this.value">
+      <div class="progress-bar-wrap"><div class="progress-bar" id="fProgressBar" style="width:0%"></div></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-danger" id="btnEliminar" style="display:none" onclick="eliminarTareaActual()">Eliminar</button>
+      <button class="btn btn-primary" onclick="guardarTarea()">Guardar tarea</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIGURACIÓN ──
+const API_URL = 'TU_URL_APPS_SCRIPT_AQUI';  // <-- reemplazar tras desplegar
+
+// ── ESTADO GLOBAL ──
+let CONFIG_DATA = {};
+let TAREAS = [];
+let DASHBOARD = {};
+let TICKETS = [];
+let filtroActual = 'todas';
+let filtroLocal = '';
+let filtroArea = '';
+let tareaEditandoId = null;
+
+// ── UTILIDADES ──
+const $ = id => document.getElementById(id);
+const hoy = () => new Date().toISOString().split('T')[0];
+
+function toast(msg, dur = 3000) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function api(params) {
+  const qs = new URLSearchParams(params).toString();
+  return fetch(API_URL + '?' + qs).then(r => r.json());
+}
+
+function badgeLocal(local) {
+  const map = {
+    'Maipi': 'maipi', 'Doña Petrona': 'petrona', 'La Oficina': 'oficina',
+    'Fierro 1': 'fierro1', 'Fierro 2': 'fierro2', 'Holding': 'holding', 'Todos': 'todos'
+  };
+  return `<span class="badge badge-${map[local]||'todos'}">${local}</span>`;
+}
+
+function badgePrio(p) {
+  const map = {'Urgente':'urgente','Alta':'alta','Media':'media','Baja':'baja'};
+  return `<span class="badge badge-${map[p]||'media'}">${p}</span>`;
+}
+
+function badgeEstado(e) {
+  const map = {'Pendiente':'pendiente','En curso':'en-curso','Completada':'completada','Bloqueada':'bloqueada'};
+  return `<span class="badge badge-${map[e]||'pendiente'}">${e}</span>`;
+}
+
+function colorLocal(local) {
+  const map = {
+    'Maipi':'#7F77DD','Doña Petrona':'#1D9E75','La Oficina':'#BA7517',
+    'Fierro 1':'#D85A30','Fierro 2':'#185FA5','Holding':'#888780'
+  };
+  return map[local] || '#888780';
+}
+
+function dotColor(prio) {
+  return prio === 'Urgente' ? '#D85A30' : prio === 'Alta' ? '#BA7517' :
+         prio === 'Media' ? '#185FA5' : '#888780';
+}
+
+function estaVencida(t) {
+  return t.fechaVencimiento && t.fechaVencimiento < hoy() && t.estado !== 'Completada';
+}
+
+// ── LOGIN ──
+function hacerLogin() {
+  const email = $('loginEmail').value.trim();
+  if (!email) return;
+  api({ accion: 'login', email }).then(r => {
+    if (r.ok) {
+      $('loginWrap').style.display = 'none';
+      $('appWrap').style.display = 'flex';
+      $('userEmail').textContent = r.email;
+      $('userAvatar').textContent = 'OP';
+      iniciarApp();
+    } else {
+      $('loginErr').style.display = 'block';
+    }
+  }).catch(() => {
+    // Modo demo si no hay API configurada
+    $('loginWrap').style.display = 'none';
+    $('appWrap').style.display = 'flex';
+    $('userEmail').textContent = email;
+    iniciarApp();
+  });
+}
+
+$('loginEmail').addEventListener('keydown', e => { if (e.key === 'Enter') hacerLogin(); });
+
+// ── INICIO APP ──
+function iniciarApp() {
+  cargarConfig().then(() => {
+    poblarSelectores();
+    cargarTodo();
+    setInterval(cargarTodo, 5 * 60 * 1000); // refresco cada 5 min
+  });
+  actualizarFechaBottomBar();
+}
+
+function actualizarFechaBottomBar() {
+  const d = new Date();
+  const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  $('bottomInfo').textContent = dias[d.getDay()] + ' ' + d.getDate() + ' de ' + meses[d.getMonth()];
+}
+
+function cargarConfig() {
+  return api({ accion: 'obtenerConfig' }).then(r => {
+    if (r.ok) CONFIG_DATA = r;
+  }).catch(() => {
+    // Fallback config
+    CONFIG_DATA = {
+      locales: ['Maipi','Doña Petrona','La Oficina','Fierro 1','Fierro 2','Holding','Todos'],
+      areas: ['Capital Humano','Mantenimiento','Proveedores','Calidad','Reporte','Compras y stock','Higiene y APPCC','Obras y reformas','Administración','Eventos y reservas','Formación'],
+      prioridades: ['Urgente','Alta','Media','Baja'],
+      estados: ['Pendiente','En curso','Bloqueada','Completada','Cancelada'],
+      tipos: ['Tarea','Proyecto','Rutina','Reporte','Seguimiento']
+    };
+  });
+}
+
+function poblarSelectores() {
+  const loc = CONFIG_DATA.locales || [];
+  const areas = CONFIG_DATA.areas || [];
+  const prios = CONFIG_DATA.prioridades || [];
+  const estados = CONFIG_DATA.estados || [];
+  const tipos = CONFIG_DATA.tipos || [];
+
+  // Modal
+  $('fLocal').innerHTML = loc.map(l => `<option value="${l}">${l}</option>`).join('');
+  $('fArea').innerHTML = areas.map(a => `<option value="${a}">${a}</option>`).join('');
+  $('fPrioridad').innerHTML = prios.map(p => `<option value="${p}">${p}</option>`).join('');
+  $('fEstado').innerHTML = estados.filter(e => e !== 'Cancelada').map(e => `<option value="${e}">${e}</option>`).join('');
+  $('fTipo').innerHTML = tipos.map(t => `<option value="${t}">${t}</option>`).join('');
+
+  // Filtros tabla
+  $('filtroLocal').innerHTML = '<option value="">Todos los locales</option>' +
+    loc.filter(l => l !== 'Todos').map(l => `<option value="${l}">${l}</option>`).join('');
+  $('filtroArea').innerHTML = '<option value="">Todas las áreas</option>' +
+    areas.map(a => `<option value="${a}">${a}</option>`).join('');
+}
+
+function cargarTodo() {
+  Promise.all([
+    api({ accion: 'obtenerDashboard' }),
+    api({ accion: 'obtenerTareas' }),
+    api({ accion: 'obtenerTickets' })
+  ]).then(([dash, tar, tick]) => {
+    if (dash.ok) { DASHBOARD = dash; renderDashboard(); }
+    if (tar.ok)  { TAREAS = tar.tareas || []; renderTabla(); }
+    if (tick.ok) { TICKETS = tick.tickets || []; renderTickets(); }
+  }).catch(() => {
+    // Datos demo si no hay API
+    DASHBOARD = { tareasHoy:3, tareasVencidas:1, tareasCompletadasSemana:8, tareasEnCurso:2, totalPendientes:7,
+      porLocal:{ 'Maipi':{pendientes:2,enCurso:1,vencidas:1}, 'Doña Petrona':{pendientes:1,enCurso:0,vencidas:0},
+                 'La Oficina':{pendientes:2,enCurso:1,vencidas:0}, 'Fierro 1':{pendientes:1,enCurso:0,vencidas:0},
+                 'Fierro 2':{pendientes:1,enCurso:0,vencidas:0}, 'Holding':{pendientes:0,enCurso:0,vencidas:0} },
+      proximasTareas: [
+        {id:'T1',titulo:'Revisar nóminas semana 19',local:'Holding',area:'Capital Humano',prioridad:'Urgente',estado:'Pendiente',fechaVencimiento:hoy(),vencida:false,progreso:'0'},
+        {id:'T2',titulo:'Llamar proveedor cárnico',local:'Maipi',area:'Proveedores',prioridad:'Alta',estado:'En curso',fechaVencimiento:hoy(),vencida:false,progreso:'40'},
+        {id:'T3',titulo:'Validar horarios junio',local:'Fierro 1',area:'Capital Humano',prioridad:'Alta',estado:'Pendiente',fechaVencimiento:hoy(),vencida:false,progreso:'0'},
+        {id:'T4',titulo:'Informe semanal dirección',local:'Holding',area:'Reporte',prioridad:'Media',estado:'Pendiente',fechaVencimiento:'2026-05-16',vencida:false,progreso:'20'},
+        {id:'T5',titulo:'Auditoría APPCC cocina',local:'La Oficina',area:'Higiene y APPCC',prioridad:'Media',estado:'Pendiente',fechaVencimiento:'2026-05-15',vencida:false,progreso:'0'}
+      ]
+    };
+    TAREAS = DASHBOARD.proximasTareas;
+    TICKETS = [
+      {id:'TK001',descripcion:'Cámara frigorífica sin frío',local:'Maipi',prioridad:'Urgente',estado:'Abierto'},
+      {id:'TK002',descripcion:'Lavavajillas ciclo largo',local:'Fierro 2',prioridad:'Media',estado:'En revisión'},
+      {id:'TK003',descripcion:'Extractor cocina ruidoso',local:'Maipi',prioridad:'Media',estado:'Abierto'}
+    ];
+    renderDashboard();
+    renderTabla();
+    renderTickets();
+  });
+}
+
+// ── RENDER DASHBOARD ──
+function renderDashboard() {
+  $('sTareasHoy').textContent = DASHBOARD.tareasHoy || 0;
+  $('sTareasHoySub').textContent = (DASHBOARD.tareasUrgentes || 0) + ' urgentes';
+  $('sVencidas').textContent = DASHBOARD.tareasVencidas || 0;
+  $('sTickets').textContent = TICKETS.length;
+  $('sCompletadas').textContent = DASHBOARD.tareasCompletadasSemana || 0;
+
+  // Tareas del día
+  const tareasHoyList = (DASHBOARD.proximasTareas || []).filter(t => t.fechaVencimiento === hoy() || t.vencida);
+  const lth = $('listaTareasHoy');
+  if (!tareasHoyList.length) {
+    lth.innerHTML = '<div class="empty-state">Sin tareas para hoy 🎉</div>';
+  } else {
+    lth.innerHTML = tareasHoyList.slice(0, 6).map(t => `
+      <div class="task-row">
+        <div class="task-check${t.estado==='Completada'?' done':''}" onclick="toggleTarea('${t.id}')"></div>
+        <div class="task-body">
+          <div class="task-title-text">${t.titulo}</div>
+          <div class="task-meta-row">
+            ${badgeLocal(t.local)}
+            <span class="badge badge-area">${t.area}</span>
+            ${t.vencida ? '<span class="badge badge-urgente">Vencida</span>' : ''}
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Locales
+  const lg = $('localesGrid');
+  const pLocal = DASHBOARD.porLocal || {};
+  const locales = Object.keys(pLocal);
+  if (!locales.length) { lg.innerHTML = '<div class="empty-state">Sin datos</div>'; return; }
+  lg.innerHTML = locales.map(local => {
+    const d = pLocal[local];
+    return `<div class="local-card">
+      <div class="local-name">
+        <div class="local-dot" style="background:${colorLocal(local)}"></div>${local}
+      </div>
+      <div class="local-kpi"><span>Pendientes</span><span class="kv ${d.pendientes>2?'a':''}">${d.pendientes}</span></div>
+      <div class="local-kpi"><span>En curso</span><span class="kv g">${d.enCurso}</span></div>
+      <div class="local-kpi"><span>Vencidas</span><span class="kv ${d.vencidas>0?'r':'g'}">${d.vencidas}</span></div>
+    </div>`;
+  }).join('');
+
+  // Datos reporte
+  renderDatosReporte();
+}
+
+function renderDatosReporte() {
+  const d = DASHBOARD;
+  $('datosReporte').innerHTML = `
+    <div class="report-row"><span class="report-label">Completadas esta semana</span><span class="report-val">${d.tareasCompletadasSemana||0}</span></div>
+    <div class="report-row"><span class="report-label">Pendientes totales</span><span class="report-val">${d.totalPendientes||0}</span></div>
+    <div class="report-row"><span class="report-label">Vencidas sin resolver</span><span class="report-val" style="color:var(--red)">${d.tareasVencidas||0}</span></div>
+    <div class="report-row"><span class="report-label">Tickets mantenimiento abiertos</span><span class="report-val">${TICKETS.length}</span></div>
+    <div class="report-row"><span class="report-label">En curso</span><span class="report-val">${d.tareasEnCurso||0}</span></div>`;
+
+  // Vista reporte completa
+  $('reporteContenido').innerHTML = $('datosReporte').innerHTML +
+    `<div style="margin-top:18px;padding-top:14px;border-top:0.5px solid var(--border)">
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:10px">Estado por local</div>` +
+    Object.keys(d.porLocal||{}).map(local => {
+      const ld = (d.porLocal||{})[local];
+      return `<div class="report-row">
+        <span class="report-label" style="display:flex;align-items:center;gap:6px">
+          <span style="width:8px;height:8px;border-radius:50%;background:${colorLocal(local)};display:inline-block"></span>${local}
+        </span>
+        <span class="report-val">${ld.pendientes}p · ${ld.enCurso}c · <span style="color:${ld.vencidas>0?'var(--red)':'var(--teal)'}">${ld.vencidas}v</span></span>
+      </div>`;
+    }).join('') + '</div>';
+}
+
+// ── RENDER TICKETS ──
+function renderTickets() {
+  const lt = $('listaTickets');
+  if (!TICKETS.length) { lt.innerHTML = '<div class="empty-state">Sin tickets abiertos ✓</div>'; return; }
+  lt.innerHTML = TICKETS.slice(0, 6).map(t => `
+    <div class="ticket-row">
+      ${badgePrio(t.prioridad)}
+      <span class="ticket-desc">${t.descripcion}</span>
+      <span class="ticket-local">${t.local}</span>
+    </div>`).join('');
+  $('sTickets').textContent = TICKETS.length;
+}
+
+// ── RENDER TABLA TAREAS ──
+function renderTabla() {
+  const fLocal = $('filtroLocal').value;
+  const fArea  = $('filtroArea').value;
+  let tareas = TAREAS.filter(t => t.estado !== 'Cancelada');
+
+  if (filtroActual === 'hoy')      tareas = tareas.filter(t => t.fechaVencimiento === hoy());
+  if (filtroActual === 'vencidas') tareas = tareas.filter(t => estaVencida(t));
+  if (filtroActual === 'en-curso') tareas = tareas.filter(t => t.estado === 'En curso');
+  if (filtroActual === 'urgente')  tareas = tareas.filter(t => t.prioridad === 'Urgente' || t.prioridad === 'Alta');
+  if (fLocal) tareas = tareas.filter(t => t.local === fLocal);
+  if (fArea)  tareas = tareas.filter(t => t.area === fArea);
+
+  const tbody = $('tablaBody');
+  if (!tareas.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">Sin tareas en esta vista</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = tareas.map(t => {
+    const venc = estaVencida(t);
+    const prog = parseInt(t.progreso) || 0;
+    return `<tr class="${t.estado==='Completada'?'done-row':''}">
+      <td>
+        <div class="task-check${t.estado==='Completada'?' done':''}" onclick="toggleTarea('${t.id}')"></div>
+      </td>
+      <td>
+        <div class="task-title-text" style="max-width:220px">${t.titulo}</div>
+        ${t.ticketVinculado ? `<div style="font-size:10px;color:var(--text-3);margin-top:2px">🔗 ${t.ticketVinculado}</div>` : ''}
+      </td>
+      <td>${badgeLocal(t.local)}</td>
+      <td><span class="badge badge-area">${t.area||'—'}</span></td>
+      <td>${badgePrio(t.prioridad)}</td>
+      <td>${badgeEstado(t.estado)}</td>
+      <td class="task-date ${venc?'vencida':''}">${t.fechaVencimiento || '—'}${venc?' ⚠':''}
+      </td>
+      <td style="min-width:60px">
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:3px">${prog}%</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:${prog}%"></div></div>
+      </td>
+      <td>
+        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="editarTarea('${t.id}')">Editar</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function setFiltro(f, btn) {
+  filtroActual = f;
+  document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTabla();
+}
+
+// ── TOGGLE COMPLETAR ──
+function toggleTarea(id) {
+  const t = TAREAS.find(t => t.id === id);
+  if (!t) return;
+  const yaCompletada = t.estado === 'Completada';
+  api({ accion: yaCompletada ? 'actualizarTarea' : 'completarTarea',
+        id, ...(yaCompletada ? { estado: 'Pendiente' } : {}) })
+    .then(() => { cargarTodo(); toast(yaCompletada ? 'Tarea reabierta' : '✓ Tarea completada'); })
+    .catch(() => { toast('Modo demo — sin conexión API'); });
+}
+
+// ── MODAL ──
+function abrirModal() {
+  tareaEditandoId = null;
+  $('modalTitulo').textContent = 'Nueva tarea';
+  $('btnEliminar').style.display = 'none';
+  $('fTitulo').value = '';
+  $('fDesc').value = '';
+  $('fLocal').value = 'Todos';
+  $('fArea').value = CONFIG_DATA.areas?.[0] || '';
+  $('fTipo').value = 'Tarea';
+  $('fPrioridad').value = 'Media';
+  $('fEstado').value = 'Pendiente';
+  $('fFecha').value = hoy();
+  $('fRecurrencia').value = '';
+  $('fRecordatorio').value = '60';
+  $('fTicket').value = '';
+  $('fProgreso').value = 0;
+  $('fProgresoLabel').textContent = '0';
+  $('fProgressBar').style.width = '0%';
+  $('fProgreso').oninput = function() {
+    $('fProgresoLabel').textContent = this.value;
+    $('fProgressBar').style.width = this.value + '%';
+  };
+  $('overlay').classList.add('open');
+  $('fTitulo').focus();
+}
+
+function editarTarea(id) {
+  const t = TAREAS.find(t => t.id === id);
+  if (!t) return;
+  tareaEditandoId = id;
+  $('modalTitulo').textContent = 'Editar tarea';
+  $('btnEliminar').style.display = 'inline-flex';
+  $('fTitulo').value = t.titulo || '';
+  $('fDesc').value = t.descripcion || '';
+  $('fLocal').value = t.local || 'Todos';
+  $('fArea').value = t.area || '';
+  $('fTipo').value = t.tipo || 'Tarea';
+  $('fPrioridad').value = t.prioridad || 'Media';
+  $('fEstado').value = t.estado || 'Pendiente';
+  $('fFecha').value = t.fechaVencimiento || '';
+  $('fRecurrencia').value = t.recurrencia || '';
+  $('fTicket').value = t.ticketVinculado || '';
+  const prog = parseInt(t.progreso) || 0;
+  $('fProgreso').value = prog;
+  $('fProgresoLabel').textContent = prog;
+  $('fProgressBar').style.width = prog + '%';
+  $('fProgreso').oninput = function() {
+    $('fProgresoLabel').textContent = this.value;
+    $('fProgressBar').style.width = this.value + '%';
+  };
+  $('overlay').classList.add('open');
+  $('fTitulo').focus();
+}
+
+function cerrarModal() { $('overlay').classList.remove('open'); }
+function cerrarModalSiAfuera(e) { if (e.target === $('overlay')) cerrarModal(); }
+
+function guardarTarea() {
+  const titulo = $('fTitulo').value.trim();
+  if (!titulo) { $('fTitulo').focus(); toast('El título es obligatorio'); return; }
+
+  const params = {
+    titulo, descripcion: $('fDesc').value,
+    local: $('fLocal').value, area: $('fArea').value,
+    tipo: $('fTipo').value, prioridad: $('fPrioridad').value,
+    estado: $('fEstado').value, fechaVencimiento: $('fFecha').value,
+    recurrencia: $('fRecurrencia').value, recordatorio: $('fRecordatorio').value,
+    ticketVinculado: $('fTicket').value, progreso: $('fProgreso').value
+  };
+
+  const accion = tareaEditandoId ? 'actualizarTarea' : 'crearTarea';
+  if (tareaEditandoId) params.id = tareaEditandoId;
+
+  cerrarModal();
+  api({ accion, ...params })
+    .then(r => { cargarTodo(); toast(tareaEditandoId ? '✓ Tarea actualizada' : '✓ Tarea creada'); })
+    .catch(() => {
+      // Demo: añadir localmente
+      if (!tareaEditandoId) {
+        TAREAS.unshift({ id: 'D' + Date.now(), ...params, vencida: false });
+      }
+      renderTabla(); renderDashboard();
+      toast(tareaEditandoId ? '✓ Tarea actualizada (demo)' : '✓ Tarea creada (demo)');
+    });
+}
+
+function eliminarTareaActual() {
+  if (!tareaEditandoId) return;
+  if (!confirm('¿Cancelar esta tarea?')) return;
+  cerrarModal();
+  api({ accion: 'eliminarTarea', id: tareaEditandoId })
+    .then(() => { cargarTodo(); toast('Tarea cancelada'); })
+    .catch(() => { toast('Modo demo — sin conexión API'); });
+}
+
+// ── REPORTE ──
+function enviarReporte() {
+  toast('Enviando reporte…');
+  api({ accion: 'generarReporte', enviar: 'true' })
+    .then(r => toast(r.ok ? '✓ Reporte enviado a tu email' : 'Error al enviar'))
+    .catch(() => toast('Modo demo — reporte no enviado'));
+}
+
+// ── NAVEGACIÓN ──
+function cambiarVista(nombre, btn, filtro) {
+  document.querySelectorAll('.vista').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  $('vista' + nombre.charAt(0).toUpperCase() + nombre.slice(1)).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (filtro) { setFiltro(filtro, document.querySelector(`.filter-pill`)); renderTabla(); }
+}
+</script>
+</body>
+</html>
