@@ -195,17 +195,78 @@
   .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center;
                 background: var(--bg); }
   .login-card { background: var(--surface); border: 0.5px solid var(--border);
-                border-radius: var(--radius-lg); padding: 36px 32px; width: 340px; }
+                border-radius: var(--radius-lg); padding: 36px 32px; width: 360px; }
   .login-logo { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
   .login-logo span { color: var(--purple); }
   .login-sub { font-size: 13px; color: var(--text-2); margin-bottom: 28px; }
   .login-err { font-size: 12px; color: var(--red); margin-top: 8px; display: none; }
+  .login-step { display: none; }
+  .login-step.active { display: block; }
+  .otp-inputs { display: flex; gap: 8px; justify-content: center; margin: 20px 0; }
+  .otp-input { width: 44px; height: 52px; text-align: center; font-size: 22px; font-weight: 600;
+               border: 1.5px solid var(--border-md); border-radius: var(--radius-sm);
+               color: var(--text); background: var(--surface); transition: border .15s; }
+  .otp-input:focus { outline: none; border-color: var(--purple); }
+  .login-hint { font-size: 12px; color: var(--text-3); text-align: center; margin-bottom: 16px; }
+  .login-back { font-size: 12px; color: var(--text-3); cursor: pointer; text-align: center;
+                margin-top: 12px; }
+  .login-back:hover { color: var(--text); }
+  .login-timer { font-size: 12px; color: var(--amber); text-align: center; margin-top: 8px; }
 
   /* ── NOTIFICACIÓN TOAST ── */
   .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: #fff;
            padding: 11px 18px; border-radius: var(--radius-sm); font-size: 13px; z-index: 999;
            opacity: 0; transform: translateY(8px); transition: all .25s; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── CALENDARIO ── */
+  .cal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .cal-wrap { background: var(--surface); border: 0.5px solid var(--border);
+              border-radius: var(--radius-lg); padding: 16px 18px; }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .cal-title  { font-size: 14px; font-weight: 600; color: var(--text); }
+  .cal-nav    { display: flex; gap: 4px; }
+  .cal-nav-btn { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm);
+                 padding: 4px 10px; cursor: pointer; font-size:13px; color: var(--text-2); }
+  .cal-nav-btn:hover { color: var(--text); }
+  .cal-days-header { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 4px; }
+  .cal-day-name { font-size: 10px; color: var(--text-3); text-align: center;
+                  text-transform: uppercase; letter-spacing:.04em; padding: 4px 0; }
+  .cal-days { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+  .cal-day  { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center;
+              justify-content: center; border-radius: var(--radius-sm); cursor: pointer;
+              font-size: 12px; color: var(--text-2); transition: background .12s; position: relative; }
+  .cal-day:hover { background: var(--bg); }
+  .cal-day.other-month { color: var(--text-3); }
+  .cal-day.today { background: var(--text); color: #fff; font-weight: 600; }
+  .cal-day.today:hover { background: var(--text); }
+  .cal-day.has-event::after { content:''; width:4px; height:4px; border-radius:50%;
+                               background: var(--purple); position:absolute; bottom:3px; }
+  .cal-day.today.has-event::after { background: #fff; }
+  .cal-day.has-task::after { background: var(--amber); }
+  .cal-day.selected { outline: 1.5px solid var(--purple); }
+  .agenda-wrap { background: var(--surface); border: 0.5px solid var(--border);
+                 border-radius: var(--radius-lg); padding: 16px 18px; overflow-y: auto; max-height: 400px; }
+  .agenda-header { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px;
+                   display: flex; justify-content: space-between; align-items: center; }
+  .agenda-day   { margin-bottom: 14px; }
+  .agenda-date  { font-size: 11px; color: var(--text-3); text-transform: uppercase;
+                  letter-spacing:.04em; margin-bottom: 6px; padding-bottom: 5px;
+                  border-bottom: 0.5px solid var(--border); }
+  .agenda-item  { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px;
+                  border-radius: var(--radius-sm); margin-bottom: 4px; cursor: pointer;
+                  transition: background .12s; }
+  .agenda-item:hover { background: var(--bg); }
+  .agenda-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .agenda-body { flex: 1; min-width: 0; }
+  .agenda-titulo { font-size: 13px; color: var(--text); white-space: nowrap;
+                   overflow: hidden; text-overflow: ellipsis; }
+  .agenda-meta   { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+  .agenda-empty  { font-size: 13px; color: var(--text-3); text-align: center; padding: 20px; }
+  .btn-cal { background: var(--purple-bg); color: var(--purple-dk); border: 0.5px solid transparent;
+             border-radius: var(--radius-sm); padding: 4px 8px; font-size: 11px; cursor: pointer;
+             white-space: nowrap; transition: all .15s; }
+  .btn-cal:hover { background: var(--purple); color: #fff; }
 
   /* ── LOADING ── */
   .spinner { width: 18px; height: 18px; border: 2px solid var(--border-md);
@@ -231,14 +292,36 @@
   <div class="login-card">
     <div class="login-logo">Tándem <span>Ops</span></div>
     <div class="login-sub">Panel de operaciones · Acceso gestor</div>
-    <div class="form-group">
-      <label class="form-label">Email</label>
-      <input class="form-control" type="email" id="loginEmail"
-             placeholder="op.tandemg@gmail.com" autocomplete="email">
+
+    <!-- PASO 1: Email -->
+    <div class="login-step active" id="loginStep1">
+      <div class="form-group">
+        <label class="form-label">Email de acceso</label>
+        <input class="form-control" type="email" id="loginEmail"
+               placeholder="op.tandemg@gmail.com" autocomplete="email">
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px"
+              id="btnEnviarOTP" onclick="enviarOTP()">Enviar código de acceso</button>
+      <div class="login-err" id="loginErr1">Email no autorizado</div>
     </div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center"
-            onclick="hacerLogin()">Entrar al panel</button>
-    <div class="login-err" id="loginErr">Email no autorizado</div>
+
+    <!-- PASO 2: Código OTP -->
+    <div class="login-step" id="loginStep2">
+      <div class="login-hint" id="otpHint">Introduce el código de 6 dígitos enviado a tu email</div>
+      <div class="otp-inputs">
+        <input class="otp-input" type="text" maxlength="1" id="otp0" inputmode="numeric">
+        <input class="otp-input" type="text" maxlength="1" id="otp1" inputmode="numeric">
+        <input class="otp-input" type="text" maxlength="1" id="otp2" inputmode="numeric">
+        <input class="otp-input" type="text" maxlength="1" id="otp3" inputmode="numeric">
+        <input class="otp-input" type="text" maxlength="1" id="otp4" inputmode="numeric">
+        <input class="otp-input" type="text" maxlength="1" id="otp5" inputmode="numeric">
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center"
+              onclick="verificarOTP()">Acceder al panel</button>
+      <div class="login-err" id="loginErr2">Código incorrecto o caducado</div>
+      <div class="login-timer" id="loginTimer"></div>
+      <div class="login-back" onclick="volverStep1()">← Volver · Reenviar código</div>
+    </div>
   </div>
 </div>
 
@@ -252,6 +335,7 @@
       <div class="nav">
         <button class="nav-btn active" onclick="cambiarVista('dashboard', this)">Dashboard</button>
         <button class="nav-btn" onclick="cambiarVista('tareas', this)">Tareas</button>
+        <button class="nav-btn" onclick="cambiarVista('calendario', this)">Calendario</button>
         <button class="nav-btn" onclick="cambiarVista('reporte', this)">Reporte</button>
       </div>
     </div>
@@ -340,7 +424,61 @@
         </div>
 
       </div><!-- /dash-grid -->
+
+      <!-- Mini-calendario en dashboard -->
+      <div class="card card-full" style="padding:16px 18px">
+        <div class="card-header" style="margin-bottom:12px">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;opacity:.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Próximos 7 días
+          </div>
+          <button class="btn" style="font-size:12px;padding:4px 10px"
+                  onclick="cambiarVista('calendario', document.querySelector('.nav-btn:nth-child(3)'))">Ver calendario completo</button>
+        </div>
+        <div id="miniAgenda"><div class="empty-state">Cargando…</div></div>
+      </div>
+
     </div><!-- /vistaDashboard -->
+
+    <!-- ══ CALENDARIO ══ -->
+    <div class="vista" id="vistaCalendario">
+      <div class="cal-grid">
+
+        <!-- Calendario mensual -->
+        <div class="cal-wrap">
+          <div class="cal-header">
+            <div class="cal-title" id="calMesLabel"></div>
+            <div class="cal-nav">
+              <button class="cal-nav-btn" onclick="navegarMes(-1)">‹</button>
+              <button class="cal-nav-btn" onclick="navegarMes(0)">Hoy</button>
+              <button class="cal-nav-btn" onclick="navegarMes(1)">›</button>
+            </div>
+          </div>
+          <div class="cal-days-header">
+            <div class="cal-day-name">Lu</div><div class="cal-day-name">Ma</div>
+            <div class="cal-day-name">Mi</div><div class="cal-day-name">Ju</div>
+            <div class="cal-day-name">Vi</div><div class="cal-day-name">Sá</div>
+            <div class="cal-day-name">Do</div>
+          </div>
+          <div class="cal-days" id="calDays"></div>
+          <div style="margin-top:12px;display:flex;gap:10px;font-size:11px;color:var(--text-3)">
+            <span><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--purple);margin-right:4px;vertical-align:middle"></span>Evento Calendar</span>
+            <span><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);margin-right:4px;vertical-align:middle"></span>Tarea vence</span>
+          </div>
+        </div>
+
+        <!-- Agenda del día seleccionado -->
+        <div class="agenda-wrap">
+          <div class="agenda-header">
+            <span id="agendaDiaLabel">Agenda</span>
+            <button class="btn btn-primary" style="font-size:12px;padding:5px 11px"
+                    onclick="abrirModalEvento()">+ Nuevo evento</button>
+          </div>
+          <div id="agendaDia"><div class="agenda-empty">Selecciona un día</div></div>
+        </div>
+
+      </div>
+    </div><!-- /vistaCalendario -->
 
     <!-- ══ TAREAS ══ -->
     <div class="vista" id="vistaTareas">
@@ -372,7 +510,7 @@
               <th>Estado</th>
               <th>Vencimiento</th>
               <th>Prog.</th>
-              <th style="width:60px"></th>
+              <th style="width:100px"></th>
             </tr>
           </thead>
           <tbody id="tablaBody">
@@ -406,6 +544,67 @@
   </div>
 
 </div><!-- /app -->
+
+<!-- MODAL EVENTO CALENDARIO -->
+<div class="overlay" id="overlayEvento" onclick="if(event.target===this)cerrarModalEvento()">
+  <div class="modal" id="modalEvento">
+    <div class="modal-header">
+      <div class="modal-title" id="modalEventoTitulo">Nuevo evento</div>
+      <button class="modal-close" onclick="cerrarModalEvento()">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Título *</label>
+      <input class="form-control" id="evTitulo" placeholder="Nombre del evento">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <textarea class="form-control" id="evDesc" placeholder="Detalles, contexto…" style="min-height:55px"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Local</label>
+        <select class="form-control" id="evLocal"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Área</label>
+        <select class="form-control" id="evArea"></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Fecha</label>
+        <input class="form-control" type="date" id="evFecha">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hora de inicio</label>
+        <input class="form-control" type="time" id="evHora" value="09:00">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Duración</label>
+        <select class="form-control" id="evDuracion">
+          <option value="30">30 minutos</option>
+          <option value="60" selected>1 hora</option>
+          <option value="90">1h 30min</option>
+          <option value="120">2 horas</option>
+          <option value="180">3 horas</option>
+          <option value="480">Todo el día</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Vincular tarea existente</label>
+        <select class="form-control" id="evTareaVinculada">
+          <option value="">Sin tarea vinculada</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="cerrarModalEvento()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEvento()">Crear en Google Calendar</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL NUEVA / EDITAR TAREA -->
 <div class="overlay" id="overlay" onclick="cerrarModalSiAfuera(event)">
@@ -497,7 +696,7 @@
 
 <script>
 // ── CONFIGURACIÓN ──
-const API_URL = 'https://script.google.com/macros/s/AKfycbw8NKiWyeA-2RfRGWZBk1FJ8xvDPhPn61R17hqDRk9MqUv0m82Z1opKX95w4jEklXldIA/exec';  // <-- reemplazar tras desplegar
+const API_URL = 'TU_URL_APPS_SCRIPT_AQUI';  // <-- reemplazar tras desplegar
 
 // ── ESTADO GLOBAL ──
 let CONFIG_DATA = {};
@@ -560,30 +759,133 @@ function estaVencida(t) {
   return t.fechaVencimiento && t.fechaVencimiento < hoy() && t.estado !== 'Completada';
 }
 
-// ── LOGIN ──
-function hacerLogin() {
+// ── LOGIN OTP ──
+let otpTimer = null;
+let otpSegundos = 900; // 15 minutos
+
+function enviarOTP() {
   const email = $('loginEmail').value.trim();
-  if (!email) return;
-  api({ accion: 'login', email }).then(r => {
-    if (r.ok) {
-      $('loginWrap').style.display = 'none';
-      $('appWrap').style.display = 'flex';
-      $('userEmail').textContent = r.email;
-      $('userAvatar').textContent = 'OP';
-      iniciarApp();
-    } else {
-      $('loginErr').style.display = 'block';
-    }
-  }).catch(() => {
-    // Modo demo si no hay API configurada
-    $('loginWrap').style.display = 'none';
-    $('appWrap').style.display = 'flex';
-    $('userEmail').textContent = email;
-    iniciarApp();
-  });
+  if (!email) { $('loginEmail').focus(); return; }
+  $('loginErr1').style.display = 'none';
+  const btn = $('btnEnviarOTP');
+  btn.textContent = 'Enviando…'; btn.disabled = true;
+
+  api({ accion: 'solicitarOTP', email })
+    .then(r => {
+      btn.textContent = 'Enviar código de acceso'; btn.disabled = false;
+      if (r.ok) {
+        $('otpHint').textContent = 'Código enviado a ' + email + ' · Válido 15 minutos';
+        $('loginStep1').classList.remove('active');
+        $('loginStep2').classList.add('active');
+        $('otp0').focus();
+        iniciarTimerOTP();
+      } else {
+        $('loginErr1').textContent = r.error || 'Email no autorizado';
+        $('loginErr1').style.display = 'block';
+      }
+    })
+    .catch(() => {
+      // Modo demo
+      btn.textContent = 'Enviar código de acceso'; btn.disabled = false;
+      $('otpHint').textContent = 'DEMO: usa el código 123456';
+      $('loginStep1').classList.remove('active');
+      $('loginStep2').classList.add('active');
+      $('otp0').focus();
+      iniciarTimerOTP();
+    });
 }
 
-$('loginEmail').addEventListener('keydown', e => { if (e.key === 'Enter') hacerLogin(); });
+function iniciarTimerOTP() {
+  otpSegundos = 900;
+  if (otpTimer) clearInterval(otpTimer);
+  otpTimer = setInterval(() => {
+    otpSegundos--;
+    const m = Math.floor(otpSegundos / 60);
+    const s = otpSegundos % 60;
+    $('loginTimer').textContent = `Código válido ${m}:${s.toString().padStart(2,'0')}`;
+    if (otpSegundos <= 0) { clearInterval(otpTimer); $('loginTimer').textContent = 'Código caducado — vuelve a solicitarlo'; }
+  }, 1000);
+}
+
+function verificarOTP() {
+  const codigo = [0,1,2,3,4,5].map(i => $('otp'+i).value).join('');
+  if (codigo.length < 6) { $('otp0').focus(); return; }
+  $('loginErr2').style.display = 'none';
+
+  api({ accion: 'verificarOTP', email: $('loginEmail').value.trim(), codigo })
+    .then(r => {
+      if (r.ok) {
+        clearInterval(otpTimer);
+        sessionStorage.setItem('tandem_token', r.token);
+        sessionStorage.setItem('tandem_email', $('loginEmail').value.trim());
+        entrarAlPanel($('loginEmail').value.trim());
+      } else {
+        $('loginErr2').style.display = 'block';
+        [0,1,2,3,4,5].forEach(i => { $('otp'+i).value=''; });
+        $('otp0').focus();
+      }
+    })
+    .catch(() => {
+      // Demo: cualquier código de 6 dígitos entra
+      clearInterval(otpTimer);
+      sessionStorage.setItem('tandem_token', 'demo_token');
+      sessionStorage.setItem('tandem_email', $('loginEmail').value.trim());
+      entrarAlPanel($('loginEmail').value.trim());
+    });
+}
+
+function volverStep1() {
+  clearInterval(otpTimer);
+  $('loginStep2').classList.remove('active');
+  $('loginStep1').classList.add('active');
+  [0,1,2,3,4,5].forEach(i => { $('otp'+i).value=''; });
+  $('loginErr2').style.display = 'none';
+  $('loginTimer').textContent = '';
+}
+
+function entrarAlPanel(email) {
+  $('loginWrap').style.display = 'none';
+  $('appWrap').style.display = 'flex';
+  $('userEmail').textContent = email;
+  $('userAvatar').textContent = 'OP';
+  iniciarApp();
+}
+
+// OTP inputs — navegación automática entre cajas
+[0,1,2,3,4,5].forEach(i => {
+  const inp = $('otp'+i);
+  if (!inp) return;
+  inp.addEventListener('input', e => {
+    const v = e.target.value.replace(/\D/g,'');
+    e.target.value = v.slice(-1);
+    if (v && i < 5) $('otp'+(i+1)).focus();
+    if ([0,1,2,3,4,5].map(j=>$('otp'+j).value).join('').length === 6) verificarOTP();
+  });
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !e.target.value && i > 0) $('otp'+(i-1)).focus();
+  });
+  inp.addEventListener('paste', e => {
+    const txt = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');
+    if (txt.length === 6) {
+      txt.split('').forEach((c,j) => { $('otp'+j).value = c; });
+      verificarOTP();
+      e.preventDefault();
+    }
+  });
+});
+
+// Verificar sesión existente al cargar
+window.addEventListener('load', () => {
+  const token = sessionStorage.getItem('tandem_token');
+  const email = sessionStorage.getItem('tandem_email');
+  if (token && email) {
+    api({ accion: 'verificarSesion', token })
+      .then(r => { if (r.ok) entrarAlPanel(email); })
+      .catch(() => { if (token === 'demo_token') entrarAlPanel(email); });
+  }
+});
+
+$('loginEmail').addEventListener('keydown', e => { if (e.key === 'Enter') enviarOTP(); });
 
 // ── INICIO APP ──
 function iniciarApp() {
@@ -644,6 +946,7 @@ function cargarTodo() {
     api({ accion: 'obtenerTareas' }),
     api({ accion: 'obtenerTickets' })
   ]).then(([dash, tar, tick]) => {
+    cargarEventosCalendario();
     if (dash.ok) { DASHBOARD = dash; renderDashboard(); }
     if (tar.ok)  { TAREAS = tar.tareas || []; renderTabla(); }
     if (tick.ok) { TICKETS = tick.tickets || []; renderTickets(); }
@@ -800,7 +1103,10 @@ function renderTabla() {
         <div class="progress-bar-wrap"><div class="progress-bar" style="width:${prog}%"></div></div>
       </td>
       <td>
-        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="editarTarea('${t.id}')">Editar</button>
+        <div style="display:flex;gap:4px">
+          <button class="btn" style="padding:4px 8px;font-size:11px" onclick="editarTarea('${t.id}')">Editar</button>
+          <button class="btn-cal" onclick="agendarTarea('${t.id}')" title="Agendar en Google Calendar">📅</button>
+        </div>
       </td>
     </tr>`;
   }).join('');
@@ -928,12 +1234,247 @@ function enviarReporte() {
     .catch(() => toast('Modo demo — reporte no enviado'));
 }
 
-// ── NAVEGACIÓN ──
+// ── GOOGLE CALENDAR ─────────────────────────────────────────
+let EVENTOS_CAL = [];
+let calMesActual = new Date();
+let diaSeleccionado = hoy();
+
+function cargarEventosCalendario() {
+  const desde = new Date(calMesActual.getFullYear(), calMesActual.getMonth(), 1);
+  const hasta  = new Date(calMesActual.getFullYear(), calMesActual.getMonth() + 1, 0);
+  return api({
+    accion: 'obtenerEventos',
+    desde:  desde.toISOString().split('T')[0],
+    hasta:  hasta.toISOString().split('T')[0]
+  }).then(r => {
+    if (r.ok) EVENTOS_CAL = r.eventos || [];
+    renderCalendario();
+    renderAgendaDia(diaSeleccionado);
+    renderMiniAgenda();
+  }).catch(() => {
+    // Demo
+    EVENTOS_CAL = [
+      { id:'ev1', titulo:'📊 Reunión dirección', inicio: hoy(), fin: hoy(), horaIni:'10:00', todoElDia:false, desc:'Informe mensual' },
+      { id:'ev2', titulo:'👥 Entrevista nuevo cocinero', inicio: hoy(), fin: hoy(), horaIni:'12:00', todoElDia:false, desc:'Maipi' }
+    ];
+    renderCalendario();
+    renderAgendaDia(diaSeleccionado);
+    renderMiniAgenda();
+  });
+}
+
+function renderCalendario() {
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  $('calMesLabel').textContent = meses[calMesActual.getMonth()] + ' ' + calMesActual.getFullYear();
+
+  const primerDia = new Date(calMesActual.getFullYear(), calMesActual.getMonth(), 1);
+  const ultimoDia = new Date(calMesActual.getFullYear(), calMesActual.getMonth() + 1, 0);
+  // Lunes como inicio de semana
+  let inicioGrid = new Date(primerDia);
+  const dow = (primerDia.getDay() + 6) % 7;
+  inicioGrid.setDate(inicioGrid.getDate() - dow);
+
+  // Fechas con eventos
+  const diasConEvento = new Set(EVENTOS_CAL.map(e => e.inicio));
+  // Fechas con tareas vencimiento
+  const diasConTarea = new Set(TAREAS.filter(t => t.fechaVencimiento && t.estado !== 'Completada' && t.estado !== 'Cancelada').map(t => t.fechaVencimiento));
+
+  let html = '';
+  const todayStr = hoy();
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(inicioGrid);
+    d.setDate(inicioGrid.getDate() + i);
+    const dStr = d.toISOString().split('T')[0];
+    const esEsteMes = d.getMonth() === calMesActual.getMonth();
+    const esHoy     = dStr === todayStr;
+    const esSelec   = dStr === diaSeleccionado;
+    const tieneEv   = diasConEvento.has(dStr);
+    const tieneTarea= diasConTarea.has(dStr);
+    let cls = 'cal-day';
+    if (!esEsteMes) cls += ' other-month';
+    if (esHoy)      cls += ' today';
+    if (esSelec && !esHoy) cls += ' selected';
+    if (tieneEv)    cls += ' has-event';
+    if (tieneTarea && !tieneEv) cls += ' has-task';
+    html += `<div class="${cls}" onclick="seleccionarDia('${dStr}')">${d.getDate()}</div>`;
+  }
+  $('calDays').innerHTML = html;
+}
+
+function seleccionarDia(fechaStr) {
+  diaSeleccionado = fechaStr;
+  renderCalendario();
+  renderAgendaDia(fechaStr);
+}
+
+function renderAgendaDia(fechaStr) {
+  const diasSemana = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const d = new Date(fechaStr + 'T12:00:00');
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  $('agendaDiaLabel').textContent = diasSemana[d.getDay()] + ' ' + d.getDate() + ' de ' + meses[d.getMonth()];
+
+  const eventos  = EVENTOS_CAL.filter(e => e.inicio === fechaStr);
+  const tareasDia = TAREAS.filter(t => t.fechaVencimiento === fechaStr && t.estado !== 'Cancelada');
+
+  if (!eventos.length && !tareasDia.length) {
+    $('agendaDia').innerHTML = '<div class="agenda-empty">Sin eventos ni tareas para este día</div>';
+    return;
+  }
+
+  let html = '';
+  if (eventos.length) {
+    html += '<div style="font-size:11px;color:var(--text-3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Eventos</div>';
+    html += eventos.map(ev => `
+      <div class="agenda-item">
+        <div class="agenda-dot" style="background:var(--purple)"></div>
+        <div class="agenda-body">
+          <div class="agenda-titulo">${ev.titulo}</div>
+          <div class="agenda-meta">${ev.todoElDia ? 'Todo el día' : ev.horaIni}${ev.desc ? ' · ' + ev.desc.slice(0,40) : ''}</div>
+        </div>
+        <button class="btn" style="padding:3px 7px;font-size:10px;color:var(--red)"
+                onclick="eliminarEvento('${ev.id}')">✕</button>
+      </div>`).join('');
+  }
+
+  if (tareasDia.length) {
+    if (eventos.length) html += '<div style="height:10px"></div>';
+    html += '<div style="font-size:11px;color:var(--text-3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Tareas con vencimiento</div>';
+    html += tareasDia.map(t => `
+      <div class="agenda-item">
+        <div class="agenda-dot" style="background:${dotColor(t.prioridad)}"></div>
+        <div class="agenda-body">
+          <div class="agenda-titulo">${t.titulo}</div>
+          <div class="agenda-meta">${t.local} · ${t.area} · ${t.prioridad}</div>
+        </div>
+        <button class="btn-cal" onclick="agendarTarea('${t.id}')" title="Crear evento en Calendar">📅</button>
+      </div>`).join('');
+  }
+
+  $('agendaDia').innerHTML = html;
+}
+
+function renderMiniAgenda() {
+  const todayDate = new Date(); todayDate.setHours(0,0,0,0);
+  let html = '';
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const dias  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(todayDate);
+    d.setDate(d.getDate() + i);
+    const dStr = d.toISOString().split('T')[0];
+    const evsDia   = EVENTOS_CAL.filter(e => e.inicio === dStr);
+    const tareasDia = TAREAS.filter(t => t.fechaVencimiento === dStr && t.estado !== 'Completada' && t.estado !== 'Cancelada');
+    const items = [...evsDia.map(e => ({ tipo:'ev', titulo:e.titulo, hora:e.horaIni })),
+                   ...tareasDia.map(t => ({ tipo:'t', titulo:t.titulo, prio:t.prioridad, local:t.local }))];
+    if (!items.length && i > 0) continue;
+
+    const label = i === 0 ? 'Hoy' : i === 1 ? 'Mañana' : dias[d.getDay()] + ' ' + d.getDate() + ' ' + meses[d.getMonth()];
+    html += `<div style="margin-bottom:10px">
+      <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">${label}</div>`;
+    if (!items.length) {
+      html += '<div style="font-size:12px;color:var(--text-3);padding:4px 0">Sin eventos</div>';
+    } else {
+      html += items.map(it => `
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border)">
+          <div style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:${it.tipo==='ev'?'var(--purple)':dotColor(it.prio||'Media')}"></div>
+          <span style="font-size:13px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${it.titulo}</span>
+          <span style="font-size:11px;color:var(--text-3);white-space:nowrap">${it.hora||it.local||''}</span>
+        </div>`).join('');
+    }
+    html += '</div>';
+  }
+
+  $('miniAgenda').innerHTML = html || '<div class="empty-state">Sin eventos esta semana</div>';
+}
+
+function navegarMes(dir) {
+  if (dir === 0) {
+    calMesActual = new Date();
+  } else {
+    calMesActual = new Date(calMesActual.getFullYear(), calMesActual.getMonth() + dir, 1);
+  }
+  cargarEventosCalendario();
+}
+
+// Agendar tarea directamente desde la tabla
+function agendarTarea(id) {
+  toast('Agendando en Google Calendar…');
+  api({ accion: 'sincronizarTarea', id })
+    .then(r => {
+      if (r.ok) {
+        toast('✅ Evento creado en Google Calendar');
+        cargarEventosCalendario();
+      } else {
+        toast('Error: ' + (r.error || 'no se pudo crear'));
+      }
+    })
+    .catch(() => toast('Modo demo — sin conexión API'));
+}
+
+function eliminarEvento(id) {
+  if (!confirm('¿Eliminar este evento del calendario?')) return;
+  api({ accion: 'eliminarEvento', eventoId: id })
+    .then(r => { toast(r.ok ? 'Evento eliminado' : 'Error al eliminar'); cargarEventosCalendario(); })
+    .catch(() => toast('Modo demo — sin conexión API'));
+}
+
+// Modal nuevo evento manual
+function abrirModalEvento(fechaPreset) {
+  // Poblar selectores si aún no están
+  if (!$('evLocal').options.length) {
+    $('evLocal').innerHTML = (CONFIG_DATA.locales||[]).map(l=>`<option value="${l}">${l}</option>`).join('');
+    $('evArea').innerHTML  = (CONFIG_DATA.areas||[]).map(a=>`<option value="${a}">${a}</option>`).join('');
+  }
+  $('evFecha').value = fechaPreset || diaSeleccionado || hoy();
+  $('evHora').value  = '09:00';
+  $('evTitulo').value = '';
+  $('evDesc').value   = '';
+  $('modalEventoTitulo').textContent = 'Nuevo evento en Google Calendar';
+  // Poblar tareas pendientes para vincular
+  const opts = TAREAS.filter(t=>t.estado!=='Completada'&&t.estado!=='Cancelada')
+    .map(t=>`<option value="${t.id}">${t.titulo.slice(0,40)} (${t.local})</option>`).join('');
+  $('evTareaVinculada').innerHTML = '<option value="">Sin tarea vinculada</option>' + opts;
+  $('overlayEvento').classList.add('open');
+  $('evTitulo').focus();
+}
+
+function cerrarModalEvento() { $('overlayEvento').classList.remove('open'); }
+
+function guardarEvento() {
+  const titulo = $('evTitulo').value.trim();
+  if (!titulo) { $('evTitulo').focus(); toast('El título es obligatorio'); return; }
+  cerrarModalEvento();
+  toast('Creando evento…');
+  api({
+    accion:    'crearEvento',
+    titulo,
+    descripcion: $('evDesc').value,
+    local:     $('evLocal').value,
+    area:      $('evArea').value,
+    fecha:     $('evFecha').value,
+    hora:      $('evHora').value,
+    duracion:  $('evDuracion').value,
+    idTarea:   $('evTareaVinculada').value
+  }).then(r => {
+    if (r.ok) { toast('✅ Evento creado en Google Calendar'); cargarEventosCalendario(); }
+    else toast('Error: ' + (r.error || 'no se pudo crear'));
+  }).catch(() => {
+    // Demo local
+    EVENTOS_CAL.push({ id:'D'+Date.now(), titulo:'📋 '+titulo, inicio:$('evFecha').value,
+                        horaIni:$('evHora').value, todoElDia:false, desc:$('evDesc').value });
+    toast('✅ Evento añadido (demo)');
+    renderCalendario(); renderAgendaDia(diaSeleccionado); renderMiniAgenda();
+  });
+}
+
+
 function cambiarVista(nombre, btn, filtro) {
   document.querySelectorAll('.vista').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   $('vista' + nombre.charAt(0).toUpperCase() + nombre.slice(1)).classList.add('active');
   if (btn) btn.classList.add('active');
+  if (nombre === 'calendario') cargarEventosCalendario();
   if (filtro) { setFiltro(filtro, document.querySelector(`.filter-pill`)); renderTabla(); }
 }
 </script>
