@@ -696,7 +696,7 @@
 
 <script>
 // ── CONFIGURACIÓN ──
-const API_URL = 'TU_URL_APPS_SCRIPT_AQUI';  // <-- reemplazar tras desplegar
+const API_URL = 'https://script.google.com/macros/s/AKfycbw8NKiWyeA-2RfRGWZBk1FJ8xvDPhPn61R17hqDRk9MqUv0m82Z1opKX95w4jEklXldIA/exec';  // <-- reemplazar tras desplegar
 
 // ── ESTADO GLOBAL ──
 let CONFIG_DATA = {};
@@ -1056,8 +1056,8 @@ function renderTickets() {
   lt.innerHTML = TICKETS.slice(0, 6).map(t => `
     <div class="ticket-row">
       ${badgePrio(t.prioridad)}
-      <span class="ticket-desc">${t.descripcion}</span>
-      <span class="ticket-local">${t.local}</span>
+      <span class="ticket-desc" title="${t.descripcion}">${t.descripcion}</span>
+      <span class="ticket-local">${t.local}${t.zona ? ' · ' + t.zona : ''}</span>
     </div>`).join('');
   $('sTickets').textContent = TICKETS.length;
 }
