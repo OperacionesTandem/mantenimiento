@@ -293,16 +293,28 @@
     <div class="login-logo">Tándem <span>Ops</span></div>
     <div class="login-sub">Panel de operaciones · Acceso gestor</div>
 
-    <!-- PASO 1: Email -->
+    <!-- PASO 1: Email + Contraseña -->
     <div class="login-step active" id="loginStep1">
       <div class="form-group">
-        <label class="form-label">Email de acceso</label>
+        <label class="form-label">Email</label>
         <input class="form-control" type="email" id="loginEmail"
                placeholder="op.tandemg@gmail.com" autocomplete="email">
       </div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px"
-              id="btnEnviarOTP" onclick="enviarOTP()">Enviar código de acceso</button>
-      <div class="login-err" id="loginErr1">Email no autorizado</div>
+      <div class="form-group" style="margin-top:10px">
+        <label class="form-label">Contraseña</label>
+        <div style="position:relative">
+          <input class="form-control" type="password" id="loginPassword"
+                 placeholder="Tu contraseña" autocomplete="current-password"
+                 style="padding-right:40px">
+          <button onclick="togglePass()" tabindex="-1"
+                  style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                         background:none;border:none;cursor:pointer;color:var(--text-3);font-size:15px"
+                  id="btnTogglePass">👁</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px"
+              id="btnEnviarOTP" onclick="enviarOTP()">Verificar y enviar código</button>
+      <div class="login-err" id="loginErr1">Credenciales incorrectas</div>
     </div>
 
     <!-- PASO 2: Código OTP -->
@@ -763,16 +775,25 @@ function estaVencida(t) {
 let otpTimer = null;
 let otpSegundos = 900; // 15 minutos
 
+function togglePass() {
+  const inp = $('loginPassword');
+  const btn = $('btnTogglePass');
+  if (inp.type === 'password') { inp.type = 'text';  btn.textContent = '🙈'; }
+  else                         { inp.type = 'password'; btn.textContent = '👁'; }
+}
+
 function enviarOTP() {
-  const email = $('loginEmail').value.trim();
-  if (!email) { $('loginEmail').focus(); return; }
+  const email    = $('loginEmail').value.trim();
+  const password = $('loginPassword').value.trim();
+  if (!email)    { $('loginEmail').focus();    return; }
+  if (!password) { $('loginPassword').focus(); return; }
   $('loginErr1').style.display = 'none';
   const btn = $('btnEnviarOTP');
-  btn.textContent = 'Enviando…'; btn.disabled = true;
+  btn.textContent = 'Verificando…'; btn.disabled = true;
 
-  api({ accion: 'solicitarOTP', email })
+  api({ accion: 'verificarCredenciales', email, password })
     .then(r => {
-      btn.textContent = 'Enviar código de acceso'; btn.disabled = false;
+      btn.textContent = 'Verificar y enviar código'; btn.disabled = false;
       if (r.ok) {
         $('otpHint').textContent = 'Código enviado a ' + email + ' · Válido 15 minutos';
         $('loginStep1').classList.remove('active');
@@ -780,13 +801,13 @@ function enviarOTP() {
         $('otp0').focus();
         iniciarTimerOTP();
       } else {
-        $('loginErr1').textContent = r.error || 'Email no autorizado';
+        $('loginErr1').textContent = r.error || 'Credenciales incorrectas';
         $('loginErr1').style.display = 'block';
       }
     })
     .catch(() => {
-      // Modo demo
-      btn.textContent = 'Enviar código de acceso'; btn.disabled = false;
+      // Modo demo — acepta cualquier combinación
+      btn.textContent = 'Verificar y enviar código'; btn.disabled = false;
       $('otpHint').textContent = 'DEMO: usa el código 123456';
       $('loginStep1').classList.remove('active');
       $('loginStep2').classList.add('active');
@@ -885,7 +906,8 @@ window.addEventListener('load', () => {
   }
 });
 
-$('loginEmail').addEventListener('keydown', e => { if (e.key === 'Enter') enviarOTP(); });
+$('loginEmail').addEventListener('keydown',    e => { if (e.key === 'Enter') { $('loginPassword').focus(); } });
+$('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') enviarOTP(); });
 
 // ── INICIO APP ──
 function iniciarApp() {
