@@ -113,7 +113,8 @@
 
   /* ── LOCALES GRID ── */
   .locales-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .local-card { border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .local-card { border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+  .local-card:hover { border-color: var(--border-md); box-shadow: 0 2px 8px rgba(0,0,0,.06); }
   .local-name { font-size: 12px; font-weight: 600; color: var(--text);
                 display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
   .local-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -708,7 +709,7 @@
 
 <script>
 // ── CONFIGURACIÓN ──
-const API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTUycNOVWjRNjsmnkJF3dhWRyasqN8gMhGTUQQbtpj1QQf09YmCHpsS2B9WZknxt-IDp1vMe7rLUKDMRw7um0aemS8J6FMxBbHuj53x_hNHmCL97s2ddD9JsZCnXcMP2bN9nh7idp_AqFOGBjjZvCLOPyl6Frg-h3EHingzmrTyzYkT25W_E_9H9gyQdN1wqjS2O-tryQpvmD-LKbI5uwB-pamep05KDoQYwD5Il93YW4a_0PQZZ6ukURlFHOImORMTqVRobq2BPAEoQcHK3hM_Jt4A9g&lib=Mv1zEdQDYplFKi7ouMkDP9hfau8RJXGT7';  // <-- reemplazar tras desplegar
+const API_URL = 'PEGAR_URL_NUEVA_AQUI';  // <-- reemplazar tras desplegar
 
 // ── ESTADO GLOBAL ──
 let CONFIG_DATA = {};
@@ -768,7 +769,7 @@ function dotColor(prio) {
 }
 
 function estaVencida(t) {
-  return t.fechaVencimiento && t.fechaVencimiento < hoy() && t.estado !== 'Completada';
+  return t.fechaVenc && t.fechaVenc < hoy() && t.estado !== 'Completada';
 }
 
 // ── LOGIN OTP ──
@@ -979,11 +980,11 @@ function cargarTodo() {
                  'La Oficina':{pendientes:2,enCurso:1,vencidas:0}, 'Fierro 1':{pendientes:1,enCurso:0,vencidas:0},
                  'Fierro 2':{pendientes:1,enCurso:0,vencidas:0}, 'Holding':{pendientes:0,enCurso:0,vencidas:0} },
       proximasTareas: [
-        {id:'T1',titulo:'Revisar nóminas semana 19',local:'Holding',area:'Capital Humano',prioridad:'Urgente',estado:'Pendiente',fechaVencimiento:hoy(),vencida:false,progreso:'0'},
-        {id:'T2',titulo:'Llamar proveedor cárnico',local:'Maipi',area:'Proveedores',prioridad:'Alta',estado:'En curso',fechaVencimiento:hoy(),vencida:false,progreso:'40'},
-        {id:'T3',titulo:'Validar horarios junio',local:'Fierro 1',area:'Capital Humano',prioridad:'Alta',estado:'Pendiente',fechaVencimiento:hoy(),vencida:false,progreso:'0'},
-        {id:'T4',titulo:'Informe semanal dirección',local:'Holding',area:'Reporte',prioridad:'Media',estado:'Pendiente',fechaVencimiento:'2026-05-16',vencida:false,progreso:'20'},
-        {id:'T5',titulo:'Auditoría APPCC cocina',local:'La Oficina',area:'Higiene y APPCC',prioridad:'Media',estado:'Pendiente',fechaVencimiento:'2026-05-15',vencida:false,progreso:'0'}
+        {id:'T1',titulo:'Revisar nóminas semana 19',local:'Holding',area:'Capital Humano',prioridad:'Urgente',estado:'Pendiente',fechaVenc:hoy(),vencida:false,progreso:'0'},
+        {id:'T2',titulo:'Llamar proveedor cárnico',local:'Maipi',area:'Proveedores',prioridad:'Alta',estado:'En curso',fechaVenc:hoy(),vencida:false,progreso:'40'},
+        {id:'T3',titulo:'Validar horarios junio',local:'Fierro 1',area:'Capital Humano',prioridad:'Alta',estado:'Pendiente',fechaVenc:hoy(),vencida:false,progreso:'0'},
+        {id:'T4',titulo:'Informe semanal dirección',local:'Holding',area:'Reporte',prioridad:'Media',estado:'Pendiente',fechaVenc:'2026-05-16',vencida:false,progreso:'20'},
+        {id:'T5',titulo:'Auditoría APPCC cocina',local:'La Oficina',area:'Higiene y APPCC',prioridad:'Media',estado:'Pendiente',fechaVenc:'2026-05-15',vencida:false,progreso:'0'}
       ]
     };
     TAREAS = DASHBOARD.proximasTareas;
@@ -1007,7 +1008,7 @@ function renderDashboard() {
   $('sCompletadas').textContent = DASHBOARD.tareasCompletadasSemana || 0;
 
   // Tareas del día
-  const tareasHoyList = (DASHBOARD.proximasTareas || []).filter(t => t.fechaVencimiento === hoy() || t.vencida);
+  const tareasHoyList = (DASHBOARD.proximasTareas || []).filter(t => t.fechaVenc === hoy() || t.vencida);
   const lth = $('listaTareasHoy');
   if (!tareasHoyList.length) {
     lth.innerHTML = '<div class="empty-state">Sin tareas para hoy 🎉</div>';
@@ -1033,9 +1034,10 @@ function renderDashboard() {
   if (!locales.length) { lg.innerHTML = '<div class="empty-state">Sin datos</div>'; return; }
   lg.innerHTML = locales.map(local => {
     const d = pLocal[local];
-    return `<div class="local-card">
+    return `<div class="local-card" onclick="irATareasLocal('${local}')" title="Ver tareas de ${local}">
       <div class="local-name">
         <div class="local-dot" style="background:${colorLocal(local)}"></div>${local}
+        <span style="margin-left:auto;font-size:10px;color:var(--text-3)">ver →</span>
       </div>
       <div class="local-kpi"><span>Pendientes</span><span class="kv ${d.pendientes>2?'a':''}">${d.pendientes}</span></div>
       <div class="local-kpi"><span>En curso</span><span class="kv g">${d.enCurso}</span></div>
@@ -1090,7 +1092,7 @@ function renderTabla() {
   const fArea  = $('filtroArea').value;
   let tareas = TAREAS.filter(t => t.estado !== 'Cancelada');
 
-  if (filtroActual === 'hoy')      tareas = tareas.filter(t => t.fechaVencimiento === hoy());
+  if (filtroActual === 'hoy')      tareas = tareas.filter(t => t.fechaVenc === hoy());
   if (filtroActual === 'vencidas') tareas = tareas.filter(t => estaVencida(t));
   if (filtroActual === 'en-curso') tareas = tareas.filter(t => t.estado === 'En curso');
   if (filtroActual === 'urgente')  tareas = tareas.filter(t => t.prioridad === 'Urgente' || t.prioridad === 'Alta');
@@ -1118,7 +1120,7 @@ function renderTabla() {
       <td><span class="badge badge-area">${t.area||'—'}</span></td>
       <td>${badgePrio(t.prioridad)}</td>
       <td>${badgeEstado(t.estado)}</td>
-      <td class="task-date ${venc?'vencida':''}">${t.fechaVencimiento || '—'}${venc?' ⚠':''}
+      <td class="task-date ${venc?'vencida':''}">${t.fechaVenc || '—'}${venc?' ⚠':''}
       </td>
       <td style="min-width:60px">
         <div style="font-size:11px;color:var(--text-3);margin-bottom:3px">${prog}%</div>
@@ -1192,7 +1194,7 @@ function editarTarea(id) {
   $('fTipo').value = t.tipo || 'Tarea';
   $('fPrioridad').value = t.prioridad || 'Media';
   $('fEstado').value = t.estado || 'Pendiente';
-  $('fFecha').value = t.fechaVencimiento || '';
+  $('fFecha').value = t.fechaVenc || '';
   $('fRecurrencia').value = t.recurrencia || '';
   $('fTicket').value = t.ticketVinculado || '';
   const prog = parseInt(t.progreso) || 0;
@@ -1218,9 +1220,10 @@ function guardarTarea() {
     titulo, descripcion: $('fDesc').value,
     local: $('fLocal').value, area: $('fArea').value,
     tipo: $('fTipo').value, prioridad: $('fPrioridad').value,
-    estado: $('fEstado').value, fechaVencimiento: $('fFecha').value,
+    estado: $('fEstado').value, fechaVenc: $('fFecha').value,
     recurrencia: $('fRecurrencia').value, recordatorio: $('fRecordatorio').value,
-    ticketVinculado: $('fTicket').value, progreso: $('fProgreso').value
+    ticketVinc: $('fTicket').value, progreso: $('fProgreso').value,
+    notas: $('fDesc').value
   };
 
   const accion = tareaEditandoId ? 'actualizarTarea' : 'crearTarea';
@@ -1299,7 +1302,7 @@ function renderCalendario() {
   // Fechas con eventos
   const diasConEvento = new Set(EVENTOS_CAL.map(e => e.inicio));
   // Fechas con tareas vencimiento
-  const diasConTarea = new Set(TAREAS.filter(t => t.fechaVencimiento && t.estado !== 'Completada' && t.estado !== 'Cancelada').map(t => t.fechaVencimiento));
+  const diasConTarea = new Set(TAREAS.filter(t => t.fechaVenc && t.estado !== 'Completada' && t.estado !== 'Cancelada').map(t => t.fechaVenc));
 
   let html = '';
   const todayStr = hoy();
@@ -1336,7 +1339,7 @@ function renderAgendaDia(fechaStr) {
   $('agendaDiaLabel').textContent = diasSemana[d.getDay()] + ' ' + d.getDate() + ' de ' + meses[d.getMonth()];
 
   const eventos  = EVENTOS_CAL.filter(e => e.inicio === fechaStr);
-  const tareasDia = TAREAS.filter(t => t.fechaVencimiento === fechaStr && t.estado !== 'Cancelada');
+  const tareasDia = TAREAS.filter(t => t.fechaVenc === fechaStr && t.estado !== 'Cancelada');
 
   if (!eventos.length && !tareasDia.length) {
     $('agendaDia').innerHTML = '<div class="agenda-empty">Sin eventos ni tareas para este día</div>';
@@ -1386,7 +1389,7 @@ function renderMiniAgenda() {
     d.setDate(d.getDate() + i);
     const dStr = d.toISOString().split('T')[0];
     const evsDia   = EVENTOS_CAL.filter(e => e.inicio === dStr);
-    const tareasDia = TAREAS.filter(t => t.fechaVencimiento === dStr && t.estado !== 'Completada' && t.estado !== 'Cancelada');
+    const tareasDia = TAREAS.filter(t => t.fechaVenc === dStr && t.estado !== 'Completada' && t.estado !== 'Cancelada');
     const items = [...evsDia.map(e => ({ tipo:'ev', titulo:e.titulo, hora:e.horaIni })),
                    ...tareasDia.map(t => ({ tipo:'t', titulo:t.titulo, prio:t.prioridad, local:t.local }))];
     if (!items.length && i > 0) continue;
@@ -1490,6 +1493,22 @@ function guardarEvento() {
   });
 }
 
+
+function irATareasLocal(local) {
+  // Ir a vista tareas y filtrar por local
+  cambiarVista('tareas', document.querySelector('.nav-btn:nth-child(2)'));
+  setTimeout(function() {
+    filtroActual = 'todas';
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    const pill = document.querySelector('.filter-pill');
+    if (pill) pill.classList.add('active');
+    const sel = $('filtroLocal');
+    if (sel) { sel.value = local; }
+    renderTabla();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    toast('📍 Tareas de ' + local);
+  }, 80);
+}
 
 function cambiarVista(nombre, btn, filtro) {
   document.querySelectorAll('.vista').forEach(v => v.classList.remove('active'));
