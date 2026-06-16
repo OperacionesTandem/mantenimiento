@@ -45,9 +45,9 @@
   /* ── PANEL ── */
   #vistaPanel { display:none; font-family:'DM Sans',sans-serif; background:#f0ede7; min-height:100vh; }
 
-  .topbar { background:var(--negro); padding:0 20px; height:52px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
-  .topbar-marca { font-family:'Cormorant Garamond',serif; color:#fff; font-size:16px; }
-  .topbar-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .topbar { background:var(--negro); padding:10px 16px; min-height:52px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 12px; position:sticky; top:0; z-index:50; }
+  .topbar-marca { font-family:'Cormorant Garamond',serif; color:#fff; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 160px; min-width:0; }
+  .topbar-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; flex-shrink:0; }
   .topbar-badge { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--dorado); border:1px solid var(--dorado); padding:3px 8px; border-radius:2px; }
   .topbar-btn { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:#aaa; background:none; border:1px solid #333; padding:5px 10px; border-radius:3px; cursor:pointer; transition:all .15s; }
   .topbar-btn:hover { color:#fff; border-color:#666; }
@@ -147,6 +147,9 @@
     .det-grid { grid-template-columns:1fr 1fr; }
     .gestion { grid-template-columns:1fr 1fr; }
     .form-nuevo { grid-template-columns:1fr 1fr; }
+    .topbar-marca { font-size:13px; flex-basis:110px; }
+    .topbar-badge { display:none; }
+    .topbar-btn { padding:5px 8px; font-size:9px; }
   }
 </style>
 </head>
@@ -454,7 +457,8 @@
   function actualizarStats() {
     var ab = todosTickets.filter(function(t) { return t.estado !== 'Cerrado' && t.estado !== 'Resuelto'; });
     ['P1','P2','P3','P4'].forEach(function(p) {
-      document.getElementById('st-'+p).textContent = ab.filter(function(t){ return t.prioridad===p; }).length;
+      var el = document.getElementById('st-'+p.toLowerCase());
+      if (el) el.textContent = ab.filter(function(t){ return t.prioridad===p; }).length;
     });
   }
 
