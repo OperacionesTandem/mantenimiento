@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>Panel Operaciones — Grupo Tandem Gastronómico</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
@@ -254,6 +253,10 @@
           <div class="toolbar-titulo" id="tTitulo">Todos los tickets</div>
           <input class="busqueda" type="search" id="busqueda" placeholder="Buscar..." oninput="renderTickets()">
           <button class="btn-ref" onclick="cargarTickets()">↻ Actualizar</button>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:#666;cursor:pointer;white-space:nowrap;">
+            <input type="checkbox" id="toggleCerrados" onchange="renderTickets()">
+            Ver resueltos y cerrados
+          </label>
         </div>
         <div id="listaTickets" class="tickets-lista"><div class="cargando"><span class="sp"></span>Cargando tickets...</div></div>
       </div>
@@ -437,66 +440,32 @@
   function pad(n) { return String(n).padStart(2,'0'); }
 
   // ── TICKETS ──
-function cargarTickets() {
-  document.getElementById('listaTickets').innerHTML = '<div class="cargando"><span class="sp"></span>Cargando tickets...</div>';
-  
-  var url = URL_API + '?' + new URLSearchParams({
-    accion: 'obtenerTickets',
-    filtroLocal: 'todos',
-    filtroEstado: 'todos',
-    filtroPrioridad: 'todas'
-  }).toString();
+  function cargarTickets() {
+    document.getElementById('listaTickets').innerHTML = '<div class="cargando"><span class="sp"></span>Cargando tickets...</div>';
+    api({ accion:'obtenerTickets', filtroLocal:'todos', filtroEstado:'todos', filtroPrioridad:'todas', token: tokenActual })
+      .then(function(res) {
+        if (res.ok) {
+          todosTickets = res.data.tickets;
+          actualizarStats(); actualizarContadores(); renderTickets();
+        } else { mostrarError('Error: ' + res.error); }
+      }).catch(function(e) { mostrarError('Error de conexión.'); });
+  }
 
-  fetch(url, { redirect:'follow', mode:'cors', credentials:'omit' })
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-      console.log("Respuesta:", JSON.stringify(res).substring(0,200));
-      if (res.ok && res.data && res.data.tickets) {
-        todosTickets = res.data.tickets;
-        actualizarStats();
-        actualizarContadores();
-        renderTickets();
-      } else if (res.ok && res.data && res.data.data && res.data.data.tickets) {
-        // Doble anidamiento
-        todosTickets = res.data.data.tickets;
-        actualizarStats();
-        actualizarContadores();
-        renderTickets();
-      } else {
-        mostrarError('Formato inesperado: ' + JSON.stringify(res).substring(0,100));
-      }
-    })
-    .catch(function(e) {
-      mostrarError('Error de conexión: ' + e.message);
+  function actualizarStats() {
+    var ab = todosTickets.filter(function(t) { return t.estado !== 'Cerrado' && t.estado !== 'Resuelto'; });
+    ['P1','P2','P3','P4'].forEach(function(p) {
+      document.getElementById('st-'+p).textContent = ab.filter(function(t){ return t.prioridad===p; }).length;
     });
-}
+  }
 
- function actualizarStats() {
-  var abiertos = todosTickets.filter(function(t) {
-    return t.estado !== 'Cerrado' && t.estado !== 'Resuelto';
-  });
-  ['P1','P2','P3','P4'].forEach(function(p) {
-    var el = document.getElementById('st-' + p);
-    if (el) el.textContent = abiertos.filter(function(t){ return t.prioridad === p; }).length;
-  });
-}
-
- function actualizarContadores() {
-  var el = document.getElementById('cnt-todos');
-  if (el) el.textContent = todosTickets.length;
-  var map = {
-    'Nuevo':'Nuevo',
-    'En revisión':'revision',
-    'Asignado':'Asignado',
-    'En proceso':'proceso',
-    'Resuelto':'Resuelto',
-    'Cerrado':'Cerrado'
-  };
-  Object.keys(map).forEach(function(e) {
-    var cnt = document.getElementById('cnt-' + map[e]);
-    if (cnt) cnt.textContent = todosTickets.filter(function(t){ return t.estado === e; }).length;
-  });
-}
+  function actualizarContadores() {
+    document.getElementById('cnt-todos').textContent = todosTickets.length;
+    var map = {'Nuevo':'Nuevo','En revisión':'revision','Asignado':'Asignado','En proceso':'proceso','Resuelto':'Resuelto','Cerrado':'Cerrado'};
+    Object.keys(map).forEach(function(e) {
+      var el = document.getElementById('cnt-'+map[e]);
+      if (el) el.textContent = todosTickets.filter(function(t){ return t.estado===e; }).length;
+    });
+  }
 
   function filtrar(tipo, val, btn) {
     if (tipo==='estado') { fEstado=val; document.querySelectorAll('.f-btn').forEach(function(b){ if(b.onclick && b.onclick.toString().includes("'estado'")) b.classList.remove('activo'); }); btn.classList.add('activo'); }
@@ -507,7 +476,9 @@ function cargarTickets() {
 
   function renderTickets() {
     var busq = (document.getElementById('busqueda').value||'').toLowerCase();
+    var mostrarCerrados = document.getElementById('toggleCerrados').checked;
     var f = todosTickets.filter(function(t) {
+      if (!mostrarCerrados && (t.estado==='Resuelto' || t.estado==='Cerrado')) return false;
       if (fEstado!=='todos' && t.estado!==fEstado) return false;
       if (fPrio!=='todas' && t.prioridad!==fPrio) return false;
       if (fLocal!=='todos' && t.local!==fLocal) return false;
@@ -651,14 +622,10 @@ function cargarTickets() {
   }
 
   // ── API ──
-function api(params) {
-  var url = URL_API + '?' + new URLSearchParams(params).toString();
-  return fetch(url, {
-    redirect: 'follow',
-    mode: 'cors',
-    credentials: 'omit'
-  }).then(function(r) { return r.json(); });
-}
+  function api(params) {
+    var url = URL_API + '?' + new URLSearchParams(params).toString();
+    return fetch(url, { mode:'cors' }).then(function(r){ return r.json(); });
+  }
 
   // ── UTILIDADES ──
   function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
